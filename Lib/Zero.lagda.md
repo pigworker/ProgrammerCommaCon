@@ -10,6 +10,11 @@ I like to name types after the number of values in them, starting with *none*
 ```agda
 data Zero : Set where
 ```
+A `data` declaration is one way to introduce a new type, here `Zero`. It
+lives in `Set`, which is short for `Set 0` (see below), the built in type
+of ordinary types that don't talk about types. After the `where` come the
+*constructors* of the type, telling you how to make its values. But here,
+after the `where` comes...nothing.
 
 It is impossible to manufacture values in the `Zero` type. As such, it's a
 good type to use as evidence for the *impossible*.
