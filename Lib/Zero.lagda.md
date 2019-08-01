@@ -39,6 +39,9 @@ impersonating the Glaswegian tones of
 [Bill Paterson](https://www.imdb.com/name/nm0665473/) in
 [Episode One of
 *Smiley's People*](https://www.imdb.com/title/tt1074420/?ref_=ttep_ep1).
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/y_JscVUQ6hs" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
 It's a way of casting aspersions at something in particular and saying
 &lsquo;*I* don't have to give you an answer, because *you* can't ask that
 question.&rsquo;. If you have the absurd pattern on the left-hand side of
