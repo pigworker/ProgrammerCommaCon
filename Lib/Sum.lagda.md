@@ -21,7 +21,7 @@ module _ {l} where
    inr : T -> S + T
 ```
 
-# Eliminator
+## Eliminator
 
 ```agda
  module _ {S T : Set l}{m}{P : S + T -> Set m} where
@@ -31,7 +31,7 @@ module _ {l} where
   (l <?> r) (inr t) = r t
 ```
 
-# Boolean Values
+## Boolean Values
 
 ```agda
 Two = One + One
@@ -56,7 +56,7 @@ if tt then t else e = t
 if ff then t else e = e
 ```
 
-# Decisions
+## Decisions
 
 Often more useful than the Booleans are the Decisions.
 
@@ -66,3 +66,9 @@ Dec X = (X -> Zero) + X
 ```
 
 Decisions tell us *what* is true or untrue, and *why*.
+
+
+## Index Lifting
+
+_:+_ : forall {I : Set}(S T : I -> Set) -> I -> Set
+(S :+ T) i = S i + T i

@@ -3,6 +3,8 @@
 ```agda
 module Lib.Sigma where
 
+open import Agda.Primitive public renaming (_⊔_ to lmax)  -- damn unicode!
+
 open import Lib.Pi
 ```
 
@@ -12,12 +14,12 @@ on the value of the first.
 
 
 ```agda
-module _ {l} where
+module _ {k l} where
 
  infixr 2 _><_ _*_
  infixr 2 _,_ -- should be low, but probably not that low
 
- record _><_ (S : Set l)(T : S -> Set l) : Set l where
+ record _><_ (S : Set k)(T : S -> Set l) : Set (lmax k l) where
    constructor _,_
    field
      fst : S
@@ -25,7 +27,7 @@ module _ {l} where
 
  open _><_ public
 
- _*_ : Set l -> Set l -> Set l
+ _*_ : Set k -> Set l -> Set (lmax k l)
  S * T = S >< ko T
 ```
 
