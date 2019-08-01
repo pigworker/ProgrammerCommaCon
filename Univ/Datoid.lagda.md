@@ -20,6 +20,9 @@ data TDesc (I : Set) : Set where
   _*'_ : TDesc I -> TDesc I -> TDesc I
   One' : TDesc I
 
+infixr 5 _*'_
+infix 6 #_
+
 Tuple : forall {I} -> (I -> Set) -> TDesc I -> Set
 Tuple P (# i)     = P i
 Tuple P (S *' T)  = Tuple P S * Tuple P T
@@ -49,6 +52,8 @@ constructor and fill in the associated tuple.
    _$_ : (c : Data (C i)) ->
          Tuple (X <?> Tree X) (F c) ->
          Tree X i
+
+ infix 1 _$_
 ```
 
 Now let us show that if the payload inhabits datoids, so do trees.

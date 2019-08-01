@@ -19,42 +19,37 @@ In this file, I refine our first-order universe to represent
 
 I'll need some basic ingredients
 
-## Lists
+## Numbers
 
 We can code up lists by introducing the datoid of list constructors,
 `nil` and `cons`. We then say that `nil` maps to an empty tuple and
 `cons` maps to the pair of a head and a tail.
 
 ```agda
-data ListCons : Set where
-  nil  : ListCons
-  cons : ListCons
+data NatCons : Set where
+  ze : NatCons
+  su : NatCons
 
-ListC : Datoid
-Data ListC = ListCons
-eq? ListC nil nil   = inr r~
-eq? ListC nil cons  = inl \ ()
-eq? ListC cons nil  = inl \ ()
-eq? ListC cons cons = inr r~
+NatC : Datoid
+Data NatC = NatCons
+eq? NatC ze ze = inr r~
+eq? NatC ze su = inl \ ()
+eq? NatC su ze = inl \ ()
+eq? NatC su su = inr r~
 
-List : Set -> Set
-List X = Tree {One}{One}
-  (\ _ -> ListC)
-  (\ { nil  -> One'
-     ; cons -> (# (inl <>)) *' (# (inr <>))
+Nat : Set
+Nat = Tree {Zero}{One}
+  (\ _ -> NatC)
+  (\ { ze -> One'
+     ; su -> One' *' # inr <>   -- gratuitous?
      })
-  (\ _ -> X)
+  naughty
   <>
 
-pattern [] = nil $ <>
-pattern _,-_ x xs = cons $ (x , xs)
+pattern zero = ze $ <>
+pattern suc n = su $ <> , n
 ```
 
-Natural numbers are boring lists.
-
-```agda
-Nat = List One
-```
 
 ## 2,3-Trees
 
@@ -64,23 +59,21 @@ heights, we can have nodes with either two or three subtrees.
 
 ```agda
 data T23Cons : Nat -> Set where
-  leaf       : T23Cons []
-  two three  : forall {n} -> T23Cons (<> ,- n)
+  leaf       : T23Cons zero
+  two three  : forall {n} -> T23Cons (suc n)
 
 T23C : Nat -> Datoid
 Data (T23C n) = T23Cons n
-eq? (T23C .[]) leaf leaf = inr r~
-eq? (T23C .(<> ,- _)) two two = inr r~
-eq? (T23C .(<> ,- _)) two three = inl \ ()
-eq? (T23C .(<> ,- _)) three two = inl \ ()
-eq? (T23C .(<> ,- _)) three three = inr r~
+eq? (T23C .zero) leaf leaf = inr r~
+eq? (T23C .(suc _)) two two = inr r~
+eq? (T23C .(suc _)) two three = inl \ ()
+eq? (T23C .(suc _)) three two = inl \ ()
+eq? (T23C .(suc _)) three three = inr r~
 
 T23D : {n : Nat} -> Data (T23C n) -> TDesc (Zero + Nat)
-T23D leaf  = One'
-T23D {<> ,- n} two   =
-       (# (inr n)) *' (# (inr n))
-T23D {<> ,- n} three =
-       (# (inr n)) *' ((# (inr n)) *' (# (inr n)))
+T23D {zero}  leaf  = One'
+T23D {suc n} two   = # inr n *' # inr n
+T23D {suc n} three = # inr n *' # inr n *' # inr n
 ```
 
 ## The Proto-Interval
@@ -149,10 +142,10 @@ bound the left component above and the right component below.
     (lu : Bound * Bound) ->
     Data (Keys T) ->
     TDesc ((Bound * Bound) + (I * Bound * Bound))
-  tupRefine (# (inr i)) lu <>            = # (inr (i , lu))
+  tupRefine (# inr i) lu <>                   = # inr (i , lu)
   tupRefine (S *' T) (l , u) (s , k , t) =
     tupRefine S (l , val k) s *' tupRefine T (val k , u) t
-  tupRefine One' lu <>                   = # (inl lu)
+  tupRefine One'      lu <>                   = # inl lu
 ```
 
 Putting the pieces together, we can take any no-payload
@@ -181,7 +174,7 @@ between bounds, carrying the evidence.
 
 ```agda
   Intv = OTree (\ _ -> SplatDat OneSplat) (\ _ -> IntvD)
-  pattern _<[_]>_ lk k ku = (<> , <> , k , <>) $ (lk , ku)
+  pattern intv lk k ku = (<> , <> , k , <>) $ (lk , ku)
 ```
 
 ## Ordered 2,3-Trees
@@ -228,19 +221,18 @@ out that
 1. inserting into a leaf makes a 2-node-one-taller
 
 ```agda
-   insert (li <[ i ]> iu) (leaf0 lu) = twoBig (leaf0 li) i (leaf0 iu)
+   insert (intv li i iu) (leaf0 lu) = twoBig (leaf0 li) i (leaf0 iu)
 ```
 
-2. inserting into a 2-node at worst makes a 3-node
-
+2. inserting into a 2-node at worst makes a 3-node 
 ```agda
-   insert (li <[ i ]> iu) (node2 lk k ku) with owoto (i , k)
-   insert (li <[ i ]> iu) (node2 lk k ku) | inl ik
-     with insert (li <[ i ]> ik) lk
+   insert (intv li i iu) (node2 lk k ku) with owoto (i , k)
+   insert (intv li i iu) (node2 lk k ku) | inl ik
+     with insert (intv li i ik) lk
    ... | twoBig lm m mk  = inr (node3 lm m mk k ku)
    ... | inr lk'         = inr (node2 lk' k ku)
-   insert (li <[ i ]> iu) (node2 lk k ku) | inr ki
-     with insert (ki <[ i ]> iu) ku
+   insert (intv li i iu) (node2 lk k ku) | inr ki
+     with insert (intv ki i iu) ku
    ... | twoBig km m mu  = inr (node3 lk k km m mu)
    ... | inr ku'         = inr (node2 lk k ku')
 ```
@@ -248,18 +240,18 @@ out that
 3. inserting into a 3-node at worst makes a 2-node-one-taller
 
 ```agda
-   insert (li <[ i ]> iu) (node3 lj j jk k ku) with owoto (i , j)
-   insert (li <[ i ]> iu) (node3 lj j jk k ku) | inl ij
-     with insert (li <[ i ]> ij) lj
+   insert (intv li i iu) (node3 lj j jk k ku) with owoto (i , j)
+   insert (intv li i iu) (node3 lj j jk k ku) | inl ij
+     with insert (intv li i ij) lj
    ... | twoBig lm m mj  = twoBig (node2 lm m mj) j (node2 jk k ku)
    ... | inr lj'         = inr (node3 lj' j jk k ku)
-   insert (li <[ i ]> iu) (node3 lj j jk k ku) | inr ji with owoto (i , k)
-   insert (li <[ i ]> iu) (node3 lj j jk k ku) | inr ji | inl ik
-     with insert (ji <[ i ]> ik) jk
+   insert (intv li i iu) (node3 lj j jk k ku) | inr ji with owoto (i , k)
+   insert (intv li i iu) (node3 lj j jk k ku) | inr ji | inl ik
+     with insert (intv ji i ik) jk
    ... | twoBig jm m mk  = twoBig (node2 lj j jm) m (node2 mk k ku)
    ... | inr jk'         = inr (node3 lj j jk' k ku)
-   insert (li <[ i ]> iu) (node3 lj j jk k ku) | inr ji | inr ki
-     with insert (ki <[ i ]> iu) ku
+   insert (intv li i iu) (node3 lj j jk k ku) | inr ji | inr ki
+     with insert (intv ki i iu) ku
    ... | twoBig km m mu  = twoBig (node2 lj j jk) k (node2 km m mu)
    ... | inr ku'         = inr (node3 lj j jk k ku')
 ```
