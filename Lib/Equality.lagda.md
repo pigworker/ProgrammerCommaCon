@@ -2,6 +2,9 @@
 
 ```agda
 module Lib.Equality where
+
+open import Lib.Pi
+open import Lib.Sigma
 ```
 
 We fix a set `X` at some level `l` in the hierarchy.
@@ -92,6 +95,107 @@ to give a proof of thing0 ~ thing2, showing the stages of my reasoning.
 The ternary operators are both sugar for transitivity, with the latter
 including symmetry, too. They are designed to expose *what* is shown
 equal at each step, as well as *why*.
+
+
+## Applicative Equations
+
+```agda
+rf : forall {k}{X : Set k} (x : X) -> x ~ x
+rf x = r~
+
+module _ {k l}{X : Set k}{Y : Set l} where
+ 
+ infixl 2 _~$~_ _$~_ _~$   -- "associating to the left, rather as we all did
+                           -- in the sixties" (Roger Hindley)
+  
+ _~$~_ : {f g : X -> Y}{a b : X} -> f ~ g -> a ~ b -> f a ~ g b
+ r~ ~$~ r~ = r~
+  
+ _$~_ : {a b : X}            (f : X -> Y) -> a ~ b -> f a ~ f b
+ f $~ q = rf f ~$~ q
+
+ _~$ : {f g : X -> Y}{a : X} ->     f ~ g          -> f a ~ g a
+ f ~$ = f ~$~ r~
+```
+
+
+## Type Transportation
+
+```agda
+module _ {l}{S T : Set l} where
+
+ _:[_> : S -> S ~ T -> T
+ s :[ r~ > = s
+
+ <_]:_ : S ~ T -> T -> S
+ < r~ ]: s = s
+```
+
+These ship values between equal types, e.g., if xs : Vec X (m +N n),
+then I might well have
+
+```example
+  xs :[ Vec X $- comm+N m n > : Vec X (n +N m)
+```
+
+## Injectivity, Surjectivity, Isomorphism
+
+```agda
+module _ {l}{X Y : Set l}(f : X -> Y) where
+
+ Injective Surjective Iso :  Set l
+
+ Injective   = forall x y -> f x ~ f y -> x ~ y
+ Surjective  = forall y -> < f - (_~ y)>
+ Iso         = Injective * Surjective
+
+module _ {l}(X Y : Set l) where
+
+ record _`->_ : Set l where
+   field
+     inj        : X -> Y
+     injective  : Injective inj
+ open _`->_ public
+
+ record _->>_ : Set l where
+   field
+     sur         : X -> Y
+     surjective  : Surjective sur
+ open _->>_ public
+
+ record _<~>_ : Set l where
+   field
+     iso    : X -> Y
+     isoInj : Injective iso
+     isoSur : Surjective iso
+   inv : Y -> X
+   inv y = fst (isoSur y)
+   iso-inv : forall x -> inv (iso x) ~ x
+   iso-inv x with isoSur (iso x)
+   ... | x' , q = isoInj x' x q
+   inv-iso : forall y -> iso (inv y) ~ y
+   inv-iso y = isoSur y .snd
+
+module _ {l}{X Y : Set l}(f : X <~> Y) where
+ open _<~>_
+
+ flip<~> : Y <~> X
+ iso    flip<~> = inv f
+ isoInj flip<~> y z q = 
+   y                  < inv-iso f y ]~
+   (inv f - iso f) y  ~[ iso f $~ q >
+   (inv f - iso f) z  ~[ inv-iso f z >
+   z  [QED]
+ isoSur flip<~> x = iso f x , iso-inv f x
+```
+
+## Register
+
+```agda
+{-# BUILTIN EQUALITY _~_ #-}
+```
+
+This pragma allows us to use the `rewrite` feature in programs and proofs.
 
 
 ## Credit
