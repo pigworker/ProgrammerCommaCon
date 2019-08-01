@@ -39,9 +39,6 @@ impersonating [the Glaswegian tones](https://youtu.be/y_JscVUQ6hs) of
 [Bill Paterson](https://www.imdb.com/name/nm0665473/) in
 [Episode One of
 *Smiley's People*](https://www.imdb.com/title/tt1074420/?ref_=ttep_ep1).
-
-
-
 It's a way of casting aspersions at something in particular and saying
 &lsquo;*I* don't have to give you an answer, because *you* can't ask that
 question.&rsquo;. If you have the absurd pattern on the left-hand side of
@@ -68,4 +65,5 @@ surely has been so. It is also pronounced &lsquo;Nought E&rsquo;, where
 &lsquo;nought&rsquo; is an archaic word for &lsquo;nothing&rsquo; or the
 *digit* 0, and &lsquo;E&rsquo; abbreviates &lsquo;elimination&rsquo;. An
 *elimination rule* tells you what good it is to know something. When you
-know something impossible, you become very powerful indeed.
+know something impossible, you become very powerful indeed. Enthusiasts for
+Latin might also say *ex falso quodlibet*.
