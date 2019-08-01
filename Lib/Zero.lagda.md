@@ -35,12 +35,12 @@ argument: that type is `Zero`.
 
 Secondly, that pattern `()` is known as the *absurd* pattern. You can also
 call it &lsquo;My Aunt Fanny&rsquo;, provided that you do so while
-impersonating the Glaswegian tones of
+impersonating [the Glaswegian tones](https://youtu.be/y_JscVUQ6hs) of
 [Bill Paterson](https://www.imdb.com/name/nm0665473/) in
 [Episode One of
 *Smiley's People*](https://www.imdb.com/title/tt1074420/?ref_=ttep_ep1).
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/y_JscVUQ6hs" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
 
 It's a way of casting aspersions at something in particular and saying
 &lsquo;*I* don't have to give you an answer, because *you* can't ask that
