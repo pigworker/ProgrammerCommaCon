@@ -11,7 +11,10 @@ open import Lib.Sigma
 open import Lib.Sum
 open import Lib.Splatoid
 open import Lib.Datoid
+open import Lib.Nat
 open import Univ.Datoid
+
+open TreeDesign
 ```
 
 In this file, I refine our first-order universe to represent
@@ -26,25 +29,26 @@ We can code up lists by introducing the datoid of list constructors,
 `cons` maps to the pair of a head and a tail.
 
 ```agda
-data NatCons : Set where
-  ze : NatCons
-  su : NatCons
+data NatuCons : Set where
+  ze : NatuCons
+  su : NatuCons
 
-NatC : Datoid
-Data NatC = NatCons
-eq? NatC ze ze = inr r~
-eq? NatC ze su = inl \ ()
-eq? NatC su ze = inl \ ()
-eq? NatC su su = inr r~
+NatuC : Datoid
+Data NatuC = NatuCons
+eq? NatuC ze ze = inr r~
+eq? NatuC ze su = inl \ ()
+eq? NatuC su ze = inl \ ()
+eq? NatuC su su = inr r~
 
-Nat : Set
-Nat = Tree {Zero}{One}
-  (\ _ -> NatC)
-  (\ { ze -> One'
-     ; su -> One' *' # inr <>   -- gratuitous?
-     })
-  naughty
-  <>
+DesignNatu : TreeDesign
+PayloadSort   DesignNatu = Zero
+RecursiveSort DesignNatu = One
+Constructor   DesignNatu <> = NatuC
+ConArguments  DesignNatu ze = One'
+ConArguments  DesignNatu su = One' *' # inr <>    -- gratuitous?
+
+Natu : Set
+Natu = Tree DesignNatu (naughty - Data) <>
 
 pattern zero = ze $ <>
 pattern suc n = su $ <> , n
@@ -59,21 +63,32 @@ heights, we can have nodes with either two or three subtrees.
 
 ```agda
 data T23Cons : Nat -> Set where
-  leaf       : T23Cons zero
-  two three  : forall {n} -> T23Cons (suc n)
+  leaf       : T23Cons ze
+  two three  : forall {n} -> T23Cons (su n)
 
 T23C : Nat -> Datoid
 Data (T23C n) = T23Cons n
-eq? (T23C .zero) leaf leaf = inr r~
-eq? (T23C .(suc _)) two two = inr r~
-eq? (T23C .(suc _)) two three = inl \ ()
-eq? (T23C .(suc _)) three two = inl \ ()
-eq? (T23C .(suc _)) three three = inr r~
+eq? (T23C .ze) leaf leaf = inr r~
+eq? (T23C .(su _)) two two = inr r~
+eq? (T23C .(su _)) two three = inl \ ()
+eq? (T23C .(su _)) three two = inl \ ()
+eq? (T23C .(su _)) three three = inr r~
+
+DesignT23 : TreeDesign
+PayloadSort   DesignT23 = Zero  -- no payload
+RecursiveSort DesignT23 = Nat   -- heights of trees
+Constructor   DesignT23 = T23C
+ConArguments  DesignT23 {ze}   leaf  = One'
+ConArguments  DesignT23 {su n} two   = # inr n *' # inr n
+ConArguments  DesignT23 {su n} three = # inr n *' # inr n *' # inr n
 
 T23D : {n : Nat} -> Data (T23C n) -> TDesc (Zero + Nat)
-T23D {zero}  leaf  = One'
-T23D {suc n} two   = # inr n *' # inr n
-T23D {suc n} three = # inr n *' # inr n *' # inr n
+T23D {ze}  leaf  = One'
+T23D {su n} two   = # inr n *' # inr n
+T23D {su n} three = # inr n *' # inr n *' # inr n
+
+T23 : Nat -> Set
+T23 = Tree DesignT23 (naughty - Data)
 ```
 
 ## The Proto-Interval
@@ -82,8 +97,11 @@ Lastly, let us define a funny little type whose values are
 pairs of empty tuples. The motivation will appear, below.
 
 ```agda
-IntvD : TDesc (Zero + One)
-IntvD = One' *' One'
+DesignIntv : TreeDesign
+PayloadSort   DesignIntv = Zero
+RecursiveSort DesignIntv = One
+Constructor   DesignIntv <> = DatOne
+ConArguments  DesignIntv <> = One' *' One'
 ```
 
 ## How To Order
@@ -113,10 +131,16 @@ relation on bounds.
   where
 
   LeB : Bound * Bound -> Splatoid
-  LeB (bot   ,     _) = OneSplat
+  LeB (bot   ,     _) = SplatOne
   LeB (val x , val y) = Le (x , y)
-  LeB (_     ,   top) = OneSplat
-  LeB (_     ,     _) = ZeroSplat
+  LeB (_     ,   top) = SplatOne
+  LeB (_     ,     _) = SplatZero
+```
+
+Now, suppose we have a tree design with no payload:
+
+```agda
+  module _ (D : TreeDesign)(Q0 : PayloadSort D ~ Zero) where
 ```
 
 Now, let us construct the datoid of node data that fits a
@@ -126,10 +150,10 @@ a key.
 
 
 ```agda
-  Keys : forall {I} -> TDesc I -> Datoid
-  Keys (S *' T)  = Keys S >D< \ _ -> Key >D< \ _ -> Keys T
-  Keys (# i)     = SplatDat OneSplat
-  Keys One'      = SplatDat OneSplat
+   Keys : forall {I} -> TDesc I -> Datoid
+   Keys (# _)    = DatOne
+   Keys One'     = DatOne
+   Keys (S *' T) = Keys S >D< \ _ -> Key >D< \ _ -> Keys T
 ```
 
 Given this information, we can transform tuple types with
@@ -138,14 +162,15 @@ as payload at the leaves. The key for each pair is used to
 bound the left component above and the right component below.
 
 ```agda
-  tupRefine : forall {I}(T : TDesc (Zero + I))
-    (lu : Bound * Bound) ->
-    Data (Keys T) ->
-    TDesc ((Bound * Bound) + (I * Bound * Bound))
-  tupRefine (# inr i) lu <>                   = # inr (i , lu)
-  tupRefine (S *' T) (l , u) (s , k , t) =
-    tupRefine S (l , val k) s *' tupRefine T (val k , u) t
-  tupRefine One'      lu <>                   = # inl lu
+   BoundTuple :   (T : TDesc (PayloadSort D + RecursiveSort D))
+              ->  Bound * Bound
+              ->  Data (Keys T)
+              ->  TDesc ((Bound * Bound) + (RecursiveSort D * Bound * Bound))
+   BoundTuple (# inl x) lu ks rewrite Q0 = naughty x
+   BoundTuple (# inr i) lu      ks            = # inr (i , lu)
+   BoundTuple One'      lu      <>            = # inl lu
+   BoundTuple (S *' T)  (l , u) (ks , k , kt) =
+     BoundTuple S (l , val k) ks *' BoundTuple T (val k , u) kt
 ```
 
 Putting the pieces together, we can take any no-payload
@@ -154,17 +179,14 @@ We attach keys to the constructors and refine the argument
 tuple. Ordering evidence is now the payload.
 
 ```agda
-  module _
-    {I : Set}
-    (C : I -> Datoid)
-    (F : {i : I} -> Data (C i) -> TDesc (Zero + I))
-   where
+   DesignOrder : TreeDesign
+   PayloadSort   DesignOrder = Bound * Bound
+   RecursiveSort DesignOrder = RecursiveSort D * (Bound * Bound)
+   Constructor   DesignOrder (i , _) = Constructor D i >D< (ConArguments D - Keys)
+   ConArguments  DesignOrder {i , lu} (c , ks) = BoundTuple (ConArguments D c) lu ks
 
-   OTree : I * Bound * Bound -> Set
-   OTree = Tree
-     (\ { (i , lu) -> C i >D< \ c -> Keys (F c) })
-     (\ { {i , lu} (c , ks) -> tupRefine (F c) lu ks })
-     (LeB - Splat)
+   OTree : RecursiveSort D * Bound * Bound -> Set
+   OTree = Tree DesignOrder (LeB - Splat)
 ```
 
 ## Intervals
@@ -173,21 +195,29 @@ Our weird pair-of-ones type now becomes the type of a key
 between bounds, carrying the evidence.
 
 ```agda
-  Intv = OTree (\ _ -> SplatDat OneSplat) (\ _ -> IntvD)
+  Intv = OTree DesignIntv r~
   pattern intv lk k ku = (<> , <> , k , <>) $ (lk , ku)
+```
+
+## Ordered Lists
+
+```agda
+  OList = OTree DesignNatu r~
+  pattern onil lu = (ze , <>) $ lu
+  pattern ocons lk k ku = (su , <> , k , <>) $ (lk , ku)
 ```
 
 ## Ordered 2,3-Trees
 
-Meanwhile, we can store keys in and impose the ordering invariant
-on 2,3-Trees.
 
 ```agda
-  OT23 = OTree T23C T23D
+{-(-}
+  OT23 = OTree DesignT23 r~
   pattern leaf0 lu = (leaf , <>) $ lu
   pattern node2 lk k ku = (two , <> , k , <>) $ (lk , ku)
   pattern node3 lj j jk k ku =
     (three , <> , j , <> , k , <>) $ (lj , jk , ku)
+{-)-}
 ```
 
 Now, suppose the order is total.

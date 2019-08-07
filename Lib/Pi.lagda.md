@@ -100,6 +100,7 @@ specialises to composition in the nondependent case.
 ## Index-Lifting
 
 ```agda
+infixr 5 _-:>_
 _-:>_ : forall {k l}{I : Set k}(S T : I -> Set l) -> I -> Set l
 (S -:> T) i = S i -> T i
 

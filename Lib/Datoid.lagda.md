@@ -31,20 +31,40 @@ module _ (Y : Datoid)
            
  where
 
- InjDat : Datoid
- Data InjDat = X
- eq? InjDat x0 x1 with eq? Y (inj i x0) (inj i x1)
- eq? InjDat x0 x1 | inl n = inl \ q -> n (inj i $~ q)
- eq? InjDat x0 x1 | inr q = inr (injective i x0 x1 q)
+ DatInj : Datoid
+ Data DatInj = X
+ eq? DatInj x0 x1 with eq? Y (inj i x0) (inj i x1)
+ eq? DatInj x0 x1 | inl n = inl \ q -> n (inj i $~ q)
+ eq? DatInj x0 x1 | inr q = inr (injective i x0 x1 q)
 ```
 
 
 ## A Splatoid is a Datoid
 
 ```agda
-SplatDat : Splatoid -> Datoid
-Data (SplatDat X) = Splat X
-eq?  (SplatDat X) _ _ = inr (splat X _ _)
+DatSplat : Splatoid -> Datoid
+Data (DatSplat X) = Splat X
+eq?  (DatSplat X) _ _ = inr (splat X _ _)
+
+DatZero = DatSplat SplatZero
+DatOne  = DatSplat SplatOne
+DatEq : {X : Set} -> X -> X -> Datoid
+DatEq x y = DatSplat (SplatEq x y)
+```
+
+## Closure under Coproduct
+
+```agda
+_+D+_ : Datoid -> Datoid -> Datoid
+Data (S +D+ T) = Data S + Data T
+eq? (S +D+ T) (inl s) (inl s') with eq? S s s'
+eq? (S +D+ T) (inl s) (inl s') | inl n  = inl \ { r~ -> n r~ }
+eq? (S +D+ T) (inl s) (inl .s) | inr r~ = inr r~
+eq? (S +D+ T) (inl s) (inr t') = inl \ ()
+eq? (S +D+ T) (inr t) (inl s') = inl \ ()
+eq? (S +D+ T) (inr t) (inr t') with eq? T t t'
+eq? (S +D+ T) (inr t) (inr t') | inl n  = inl \ { r~ -> n r~ }
+eq? (S +D+ T) (inr t) (inr .t) | inr r~ = inr r~
 ```
 
 
