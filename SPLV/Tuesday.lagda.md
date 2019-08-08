@@ -538,7 +538,7 @@ Now go back to the interloper.
 
 ```agda
 {-(-}
-  module _ (owoto : ((x , y) : Data Key * Data Key) ->
+  module _ (owoto : (x  y : Data Key) ->
                     Splat (Le (x , y)) + Splat (Le (y , x)))
    where
 
@@ -550,7 +550,7 @@ Now go back to the interloper.
         TooBig (n , l , u)
       + OT23   (n , l , u)
    insert (intv lx x xu) (leaf0 lu) = {!!}
-   insert (intv lx x xu) (node2 lk k ku) with owoto (x , k)
+   insert (intv lx x xu) (node2 lk k ku) with owoto x k
    insert (intv lx x xu) (node2 lk k ku) | inl xk = {!!}
    insert (intv lx x xu) (node2 lk k ku) | inr kx = {!!}
    insert (intv lx x xu) (node3 lj j jk k ku) = {!!}
