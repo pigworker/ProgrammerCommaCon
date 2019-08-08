@@ -14,6 +14,7 @@ examples. I'll review what's changed.)
 open import Lib.Zero
 open import Lib.One
 open import Lib.Equality
+open import Lib.Pi
 open import Lib.Splatoid   -- go and look at it
 ```
 
@@ -149,13 +150,30 @@ We should show that if the payload types have decidable equality, then
 so do the trees.
 
 ```agda
-{-+}
+{-(-}
  module _ (X : PayloadSort -> Datoid) where
 
   DatTree : RecursiveSort -> Datoid
+  tupEq? : (T : TDesc (PayloadSort + RecursiveSort)) ->
+           Dec~ (Tuple ((X - Data) <?> Tree (X - Data)) T)
   Data (DatTree i) = Tree (X - Data) i
-  eq?  (DatTree i) = {!!}
-{+-}
+  eq? (DatTree i) (c $ x) (d $ y) with eq? (Constructor i) c d
+  eq? (DatTree i) (c $ x) (d $ y) | inl n = inl \ { r~ -> n r~ }
+  eq? (DatTree i) (c $ x) (.c $ y) | inr r~ with tupEq? (ConArguments c) x y
+  eq? (DatTree i) (c $ x) (.c $ y) | inr r~ | inl n = inl \ { r~ -> n r~ }
+  eq? (DatTree i) (c $ x) (.c $ .x) | inr r~ | inr r~ = inr r~
+  tupEq? (# inl j) s t with eq? (X j) s t
+  tupEq? (# inl j) s t | inl n = inl \ { r~ -> n r~ }
+  tupEq? (# inl j) s .s | inr r~ = inr r~
+  tupEq? (# inr i) s t with eq? (DatTree i) s t
+  tupEq? (# inr i) s t | inl n = inl \ { r~ -> n r~ }
+  tupEq? (# inr i) s t | inr r~ =  inr r~
+  tupEq? One'     <> <> = inr r~
+  tupEq? (S *' T) (s0 , t0) (s1 , t1) with tupEq? S s0 s1 | tupEq? T t0 t1
+  tupEq? (S *' T) (s0 , t0) (s1 , t1) | inl n | _ = inl \ { r~ -> n r~ }
+  tupEq? (S *' T) (s0 , t0) (.s0 , t1) | inr r~ | inl n = inl \ { r~ -> n r~ }
+  tupEq? (S *' T) (s0 , t0) (.s0 , .t0) | inr r~ | inr r~ = inr r~
+{-)-}
 ```
 
 The following is homework.
@@ -181,8 +199,7 @@ open TreeDesign public
 ```agda
 {-(-}
 data NatuCons : Set where
-  ze : NatuCons
-  su : NatuCons
+  ze su : NatuCons
 
 NatuC : Datoid
 Data NatuC = NatuCons
@@ -228,6 +245,7 @@ ConArguments  DesignVec {su n} <> =             -- at length `su n`...
      # inr n    -- ...one subvector of length `n` (the tail)
 
 Vec X n = Tree DesignVec (ko X) n
+
 ```
 
 Let's show the data being built.
@@ -238,6 +256,12 @@ pattern vnil = <> $ <>
 
 -- vcons : forall {X n} -> X -> Vec X n -> Vec X (su n)
 pattern vcons x xs = <> $ x , xs
+
+
+vec : {X Y : Set} -> (X -> Y) -> [ Vec X -:> Vec Y ]
+vec f {ze} vnil = vnil
+vec f {su n} (vcons x xs) = vcons (f x) (vec f xs)
+
 ```
 
 
@@ -285,7 +309,7 @@ it's coded within our little universe.
 First, let us have simple types.
 
 ```agda
-{-+}
+{-(-}
 Ty : Set
 
 DesignTy : TreeDesign
@@ -303,14 +327,14 @@ pattern _-Ty>_ sg ta = inr <> $ sg , ta
 IsArrow : Ty -> Splatoid
 IsArrow baseTy       = SplatZero
 IsArrow (sg -Ty> ta) = SplatOne
-{+-}
+{-)-}
 ```
 
 Next, let us have backward lists: with simple types as payload, these give us
 contexts.
 
 ```agda
-{-+}
+{-(-}
 Bwd : Set -> Set
 
 DesignBwd : TreeDesign
@@ -325,14 +349,14 @@ Bwd X = Tree DesignBwd (ko X) <>
 
 pattern []        = ze $ <>
 pattern _-,_ xz x = su $ xz , x
-{+-}
+{-)-}
 ```
 
 Next, we can have typed de Bruijn indices, enforcing that the type of a
 variable is exactly what the context says it is.
 
 ```agda
-{-+}
+{-(-}
 In : Bwd Ty * Ty -> Set
 
 DesignIn : Ty -> TreeDesign
@@ -348,7 +372,7 @@ In (Ga , ta) = Tree (DesignIn ta) (naughty - Data) Ga
 
 pattern dbZe   = inr r~ $ <>
 pattern dbSu x = inl <> $ x
-{+-}
+{-)-}
 ```
 
 Finally, we have the well typed terms, with variables as payload.
@@ -356,7 +380,7 @@ Observe that there is a constructor for abstraction only when the
 type is an arrow.
 
 ```agda
-{-+}
+{-(-}
 Term : Bwd Ty * Ty -> Set
 
 DesignTerm : TreeDesign
@@ -384,7 +408,7 @@ pattern lmda t   = inr <> $ t
 churchTwo : forall {Ga ta} -> Term (Ga , (ta -Ty> ta) -Ty> (ta -Ty> ta))
 churchTwo =
   lmda (lmda (appl (vrbl (dbSu dbZe)) (appl (vrbl (dbSu dbZe)) (vrbl dbZe))))
-{+-}
+{-)-}
 ```
 
 
@@ -393,13 +417,13 @@ churchTwo =
 This stays commented out until it's needed.
 
 ```agda
-{-+}
+{-(-}
 DesignIntv : TreeDesign
 PayloadSort   DesignIntv = Zero
 RecursiveSort DesignIntv = One
 Constructor   DesignIntv <> = DatOne
 ConArguments  DesignIntv <> = One' *' One'
-{+-}
+{-)-}
 ```
 
 
@@ -447,17 +471,23 @@ a binary tree with a key for every pairing site, and ordering evidence
 as payload.
 
 ```agda
-{-+}
+{-(-}
   module _ (D : TreeDesign)(Q0 : PayloadSort D ~ Zero) where
 
    Keys : forall {I} -> TDesc I -> Datoid
-   Keys T = {!!}
+   Keys (# x) = DatOne
+   Keys One' = DatOne
+   Keys (S *' T) = Keys S >D< \ _ -> Key >D< \ _ -> Keys T
 
    BoundTuple :   (T : TDesc (PayloadSort D + RecursiveSort D))
               ->  Bound * Bound
               ->  Data (Keys T)
               ->  TDesc ((Bound * Bound) + (RecursiveSort D * Bound * Bound))
-   BoundTuple T lu ks = {!!}
+   BoundTuple (# inl x) lu ks rewrite Q0 = naughty x
+   BoundTuple (# inr i) lu ks = # inr (i , lu)
+   BoundTuple One' lu ks = # inl lu
+   BoundTuple (S *' T) (l , u) (ks , k , kt) =
+     BoundTuple S (l , val k) ks *' BoundTuple T (val k , u) kt
 
    DesignOrder : TreeDesign
    PayloadSort   DesignOrder = Bound * Bound
@@ -467,7 +497,7 @@ as payload.
 
    OTree : RecursiveSort D * Bound * Bound -> Set
    OTree = Tree DesignOrder (LeB - Splat)
-{+-}
+{-)-}
 ```
 
 ## Intervals
@@ -475,52 +505,56 @@ as payload.
 Now go back to the interloper.
 
 ```agda
-{-+}
+{-(-}
   Intv = OTree DesignIntv r~
   pattern intv lk k ku = (<> , <> , k , <>) $ (lk , ku)
-{+-}
+{-)-}
 ```
 
 ## Ordered Lists
 
 ```agda
-{-+}
+{-(-}
   OList = OTree DesignNatu r~
   pattern onil lu = (ze , <>) $ lu
   pattern ocons lk k ku = (su , <> , k , <>) $ (lk , ku)
-{+-}
+{-)-}
 ```
 
 ## Ordered 2,3-Trees
 
 
 ```agda
-{-+}
+{-(-}
   OT23 = OTree DesignT23 r~
   pattern leaf0 lu = (leaf , <>) $ lu
   pattern node2 lk k ku = (two , <> , k , <>) $ (lk , ku)
   pattern node3 lj j jk k ku =
     (three , <> , j , <> , k , <>) $ (lj , jk , ku)
-{+-}
+{-)-}
 ```
 
 ## Insertion
 
 ```agda
-{-+}
+{-(-}
   module _ (owoto : ((x , y) : Data Key * Data Key) ->
                     Splat (Le (x , y)) + Splat (Le (y , x)))
    where
 
    TooBig : Nat * Bound * Bound -> Set
-   TooBig (n , l , u) = ?
+   TooBig (n , l , u) = {!!}
 
    insert : forall {n l u} ->
      Intv (<> , l , u) -> OT23 (n , l , u) ->
         TooBig (n , l , u)
       + OT23   (n , l , u)
-   insert x t = ?
-{+-}
+   insert (intv lx x xu) (leaf0 lu) = {!!}
+   insert (intv lx x xu) (node2 lk k ku) with owoto (x , k)
+   insert (intv lx x xu) (node2 lk k ku) | inl xk = {!!}
+   insert (intv lx x xu) (node2 lk k ku) | inr kx = {!!}
+   insert (intv lx x xu) (node3 lj j jk k ku) = {!!}
+{-)-}
 ```
 
 
