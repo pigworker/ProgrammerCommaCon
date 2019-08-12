@@ -30,6 +30,7 @@ record TermDesign : Set1 where
   field
     TermSort : Set
     Constructor : TermSort -> Datoid
+    ConArgs : {i : TermSort} -> Data (Constructor i) -> Args TermSort
 ```
 
 ```agda
@@ -39,5 +40,5 @@ module _ (D : TermDesign) where
 
  data Term (i : TermSort) : Set where
    var : Term i
-   _$_ : (c : Data (Constructor i)) -> Term i
+   _$_ : (c : Data (Constructor i)) -> Tuple Term (ConArgs c) -> Term i
 ```
