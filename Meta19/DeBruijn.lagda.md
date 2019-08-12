@@ -5,10 +5,12 @@ This is, to be frank, a bait-and-switch operation...
 ```agda
 module Meta19.DeBruijn where
 
+open import Lib.Zero
 open import Lib.One
 open import Lib.Sigma
 open import Lib.Equality
 open import Lib.Pi
+open import Lib.Sum
 open import Lib.Bwd
 open import Lib.Datoid
 open import Thin.Thin
@@ -48,3 +50,21 @@ module _ (D : TermDesign) where
    _$_ : (c : Data (Constructor i)) -> Tuple Term (ConArgs c) ga -> Term i ga
 ```
 
+```agda
+DesignTy : TermDesign
+TermDesign.BindSort DesignTy = Zero
+TermDesign.TermSort DesignTy = One
+TermDesign.bindTerm DesignTy ()
+TermDesign.Constructor DesignTy <> = DatTwo
+TermDesign.ConArgs DesignTy ff = One'
+TermDesign.ConArgs DesignTy tt = # <> *' # <>
+
+Ty : Set
+Ty = Term DesignTy <> []
+
+-- base : Ty
+pattern base = ff $ <>
+
+-- _-Ty>_ : Ty -> Ty -> Ty
+pattern _-Ty>_ S T = tt $ (S , T)
+```

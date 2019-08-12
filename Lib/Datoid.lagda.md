@@ -65,6 +65,8 @@ eq? (S +D+ T) (inr t) (inl s') = inl \ ()
 eq? (S +D+ T) (inr t) (inr t') with eq? T t t'
 eq? (S +D+ T) (inr t) (inr t') | inl n  = inl \ { r~ -> n r~ }
 eq? (S +D+ T) (inr t) (inr .t) | inr r~ = inr r~
+
+DatTwo = DatOne +D+ DatOne
 ```
 
 
