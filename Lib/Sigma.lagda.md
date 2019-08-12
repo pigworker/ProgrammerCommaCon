@@ -40,9 +40,11 @@ explicit.
 ## Index-Lifting
 
 ```agda
+infixr 4 _:*_
 _:*_ : forall {k l}{I : Set k}(S T : I -> Set l) -> I -> Set l
 (S :* T) i = S i * T i
 
+infix 2 <_>
 <_> : forall {l}{I : Set l}(T : I -> Set l) -> Set l
 < T > = _ >< T
 
