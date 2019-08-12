@@ -14,23 +14,27 @@ open import Thin.Thin
 ```
 
 ```agda
-data Args (I : Set) : Set where
-  #    : I -> Args I
-  One' : Args I
-  _*'_ : Args I -> Args I -> Args I
+data Args (B I : Set) : Set where
+  #    : I -> Args B I
+  One' : Args B I
+  _*'_ : Args B I -> Args B I -> Args B I
+  _|-'_ : B -> Args B I -> Args B I
 
-Tuple : {I : Set} -> (I -> Set) -> Args I -> Set
-Tuple X (# i)    = X i
-Tuple X One'     = One
-Tuple X (S *' T) = Tuple X S * Tuple X T
+Tuple : {B I : Set} -> (I -> Bwd B -> Set) -> Args B I -> Bwd B -> Set
+Tuple X (# i)     ga = X i ga
+Tuple X One'      ga = One
+Tuple X (S *' T)  ga = Tuple X S ga * Tuple X T ga
+Tuple X (b |-' T) ga = Tuple X T (ga -, b)
 ```
 
 ```agda
 record TermDesign : Set1 where
   field
+    BindSort : Set
     TermSort : Set
+    bindTerm : BindSort -> TermSort
     Constructor : TermSort -> Datoid
-    ConArgs : {i : TermSort} -> Data (Constructor i) -> Args TermSort
+    ConArgs : {i : TermSort} -> Data (Constructor i) -> Args BindSort TermSort
 ```
 
 ```agda
@@ -38,7 +42,7 @@ module _ (D : TermDesign) where
 
  open TermDesign D
 
- data Term (i : TermSort) : Set where
-   var : Term i
-   _$_ : (c : Data (Constructor i)) -> Tuple Term (ConArgs c) -> Term i
+ data Term (i : TermSort)(ga : Bwd BindSort) : Set where
+   var : Term i ga
+   _$_ : (c : Data (Constructor i)) -> Tuple Term (ConArgs c) ga -> Term i ga
 ```
