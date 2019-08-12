@@ -14,13 +14,22 @@ open import Thin.Thin
 ```
 
 ```agda
-data Args : Set where
+data Args (I : Set) : Set where
+  #    : I -> Args I
+  One' : Args I
+  _*'_ : Args I -> Args I -> Args I
 
-Tuple : Args -> Set
+Tuple : {I : Set} -> (I -> Set) -> Args I -> Set
+Tuple X (# i)    = X i
+Tuple X One'     = One
+Tuple X (S *' T) = Tuple X S * Tuple X T
 ```
 
 ```agda
 record TermDesign : Set1 where
+  field
+    TermSort : Set
+    Constructor : TermSort -> Datoid
 ```
 
 ```agda
@@ -28,7 +37,7 @@ module _ (D : TermDesign) where
 
  open TermDesign D
 
- data Term : Set where
-   var : Term
-   _$_ : Term
+ data Term (i : TermSort) : Set where
+   var : Term i
+   _$_ : (c : Data (Constructor i)) -> Term i
 ```
