@@ -4,6 +4,10 @@
 module Thin.Thin where
 
 open import Lib.Bwd
+open import Lib.Sum
+open import Lib.Sigma
+open import Lib.Equality
+open import Lib.Datoid
 ```
 
 ```agda
@@ -35,4 +39,19 @@ module _ {X : Set} where
  envPos : forall {ga} -> Env (_<- ga) ga
  envPos {[]} = []
  envPos {ga -, x} = env (_-^ x) envPos -, (noth -, x)
+```
+
+```agda
+ Dat<= : Bwd X -> Datoid
+ Data (Dat<= de) = <(_<= de)>
+ eq? (Dat<= ._) (! th -^ x) (! ph -^ .x) with eq? (Dat<= _) (! th) (! ph)
+ eq? (Dat<= .(_ -, x)) (! th -^ x) (! ph -^ .x) | inl n = inl \ { r~ -> n r~ }
+ eq? (Dat<= .(_ -, x)) (! th -^ x) (! .th -^ .x) | inr r~ = inr r~
+ eq? (Dat<= ._) (! th -^ x) (! ph -, .x) = inl \ ()
+ eq? (Dat<= ._) (! th -, x) (! ph -^ .x) = inl \ ()
+ eq? (Dat<= ._) (! th -, x) (! ph -, .x) with eq? (Dat<= _) (! th) (! ph)
+ eq? (Dat<= ._) (! th -, x) (! ph -, .x) | inl n = inl \ { r~ -> n r~ }
+ eq? (Dat<= ._) (! th -, x) (! .th -, .x) | inr r~ =
+   inr r~
+ eq? (Dat<= .[]) (! []) (! []) = inr r~
 ```

@@ -78,7 +78,7 @@ We may now replace `-thin` by the more useful...
  io- : forall {ga de}(th : ga <= de) -> ThinCo io th th
  io- th = {!!}
 
- _-io : forall {ga de}(th : ga <= de) -> ThinCo io th th
+ _-io : forall {ga de}(th : ga <= de) -> ThinCo th io th
  th -io = {!!}
 ```
 
