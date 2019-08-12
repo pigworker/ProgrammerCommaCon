@@ -74,3 +74,25 @@ must, in particular, form a *pullback*.
  pullback (th0 -, x) (th1 -, .x) = let ! ! p = pullback th0 th1 in ! ! p -, x
  pullback [] [] = ! ! []
 ```
+
+```agda
+ noth-pull : forall {ga de}(th : ga <= de) -> Pullback (noth- noth ^ noth- th)
+ noth-pull (th -^ x) = noth-pull th -^ x
+ noth-pull (th -, x) = noth-pull th -^, x
+ noth-pull [] = []
+ 
+ pull-io : forall {ga de}(th : ga <= de) -> Pullback (io- th ^ th -io)
+ pull-io (th -^ x) = pull-io th -^, x
+ pull-io (th -, x) = pull-io th -, x
+ pull-io [] = []
+```
+
+```agda
+ swapPullback : {ga de : Bwd X}{a b : <(ga <=_) :* (_<= de)>}{s : Square a b} ->
+                let       v       ^ w       = s in Pullback s -> Pullback (w ^ v)
+ swapPullback (p -^ x)  = swapPullback p -^ x
+ swapPullback (p -^, x) = swapPullback p -,^ x
+ swapPullback (p -,^ x) = swapPullback p -^, x
+ swapPullback (p -, x)  = swapPullback p -, x
+ swapPullback [] = []
+```

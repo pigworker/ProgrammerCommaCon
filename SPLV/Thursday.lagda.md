@@ -4,9 +4,94 @@
 module SPLV.Thursday where
 
 open import Lib.Bwd -- look at this
+open import Lib.One
 open import Lib.Equality
 open import Lib.Splatoid
+open import Lib.Datoid
 open import Lib.Sigma
+```
+
+```agda
+data TDesc (B : Set)(I : Set) : Set where
+  #_ : I -> TDesc B I
+  One' : TDesc B I
+  _*'_ : TDesc B I -> TDesc B I -> TDesc B I
+  _|-'_ : B -> TDesc B I -> TDesc B I
+
+{-(-}
+infixr 5 _*'_
+infix  6 #_
+{-)-}
+
+open import Lib.Pi -- come back to this before tuple
+
+{-(-}
+module _ {B I : Set} where
+
+ Tuple  :   (I -> Bwd B -> Set)
+        ->  (TDesc B I -> Bwd B -> Set)
+ Tuple P (# i) ga = P i ga
+ Tuple P One' ga = One
+ Tuple P (S *' T) ga = Tuple P S ga * Tuple P T ga
+ Tuple P (b |-' T) ga = Tuple P T (ga -, b)
+{-)-}
+
+```
+
+```agda
+record TermDesign : Set1 where
+  field
+    BindingSort   : Set
+    TermSort      : Set
+    bind2Term     : BindingSort -> TermSort
+    Constructor   : TermSort -> Datoid
+    ConArguments  : forall {i} -> Data (Constructor i)
+                               -> TDesc BindingSort TermSort
+```
+
+A `TermDesign` generates a type of trees, as follows.
+
+
+```agda
+module _ {X : Set} where
+ 
+ data _<=_ : {-source-}Bwd X -> {-target-}Bwd X -> Set where
+   _-^_ : forall {ga de} -> ga <= de -> forall x -> ga      <= de -, x
+   _-,_ : forall {ga de} -> ga <= de -> forall x -> ga -, x <= de -, x
+   []   :                                           []      <= []
+
+ infixl 20 _-^_
+ infix  15 _<=_
+
+ _<-_ :  X -> {-target-}Bwd X -> Set
+ x <- ga = [] -, x <= ga
+```
+
+
+```agda
+{-(-}
+module _ (D : TermDesign) where
+
+ open TermDesign D
+
+ data Term (i : TermSort)(ga : Bwd BindingSort) : Set where
+   var : forall {b} -> b <- ga -> bind2Term b ~ i -> Term i ga
+   _$_ : (c : Data (Constructor i))
+      -> Tuple Term (ConArguments c) ga
+      -> Term i ga
+
+ infix 1 _$_
+{-)-}
+
+ sbst : forall {ga de : Bwd BindingSort} ->
+       (forall {b} -> b <- ga -> Term (bind2Term b) de) ->
+       forall {T} -> Tuple Term T ga -> Tuple Term T de
+ sbst sb {# i} (var j r~) = sb j
+ sbst sb {# i} (c $ x) = c $ sbst sb {ConArguments c} x
+ sbst sb {One'} <> = <>
+ sbst sb {S *' T} (s , t) = sbst sb {S} s , sbst sb {T} t
+ sbst sb {b |-' T} t = sbst (\ { (j -^ x) -> {!sb j!}
+                               ; (j -, x) -> var ({!!} -, _) r~ }) {T} t
 ```
 
 We've seen a universe of first-order datatypes which had very little structure.
@@ -38,17 +123,6 @@ the type of the variable).
 
 When does one scope embed in another? Enter, the *thinnings*.
 
-```agda
-module _ {X : Set} where
- 
- data _<=_ : {-source-}Bwd X -> {-target-}Bwd X -> Set where
-   _-^_ : forall {ga de} -> ga <= de -> forall x -> ga      <= de -, x
-   _-,_ : forall {ga de} -> ga <= de -> forall x -> ga -, x <= de -, x
-   []   :                                           []      <= []
-
- infixl 20 _-^_
- infix  15 _<=_
-```
 
 (In my unicode-free style, I write Greek letters as two-letter abbreviations
 (&omega; is om, &omicron; is on).)
@@ -79,14 +153,14 @@ What's our next move?
 ```
 
 ```agda
-{-(-}
+{-+}
  infixl 20 _-<=_
  _-<=_ : forall {ga de ze} -> ga <= de -> de <= ze -> ga <= ze
  th       -<= (ph -^ x) = th -<= ph -^ x
  th -^ .x -<= (ph -, x) = th -<= ph -^ x
  th -, .x -<= (ph -, x) = th -<= ph -, x
  []       -<= []        = []
-{-)-}
+{+-}
 ```
 
 A little bit of craft. What if we were in the middle of a proof and

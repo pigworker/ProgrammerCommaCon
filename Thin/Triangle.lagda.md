@@ -107,5 +107,8 @@ module _ {X : Set} where
    <([ th01 - th12 ]~_) :* ([_- th23 ]~ th03)>   -- th02 is shared
    ->
    <([ th01 -_]~ th03 ) :* ([ th12 - th23 ]~_)>  -- th13 is generated
- assoc13 (v ^ w) = {!!}
+ assoc13 {th23 = th23} {th12 = th12} (v012 ^ v023) with tri th12 th23
+ ... | ! v123 with assoc03 (v012 ^ v123)
+ ... | v013 ^ v023' with splat splatTri (! v023) (! v023')
+ ... | r~ = v013 ^ v123
 ```

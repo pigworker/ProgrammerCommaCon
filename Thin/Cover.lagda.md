@@ -5,6 +5,7 @@ module Thin.Cover where
 
 open import Lib.Bwd
 open import Lib.Sigma
+open import Lib.Equality
 open import Thin.Thin
 open import Thin.Triangle
 open import Thin.Thinned
@@ -61,4 +62,24 @@ module _ {X : Set} where
       outl    : F :^ ga
       outr    : G :^ ga
       cover   : snd (snd outl) /u\ snd (snd outr)
+```
+
+```agda
+ allRight : forall {ga} -> noth {ga = ga} /u\ io
+ allRight {[]} = []
+ allRight {ga -, x} = allRight {ga} -^, x
+
+ isAllRight : forall {de ze}{th : [] <= ze}{ph : de <= ze}(u : th /u\ ph)
+   -> (de ~ ze) >< \ { r~ -> ph ~ io }
+ isAllRight (u -^, x) with isAllRight u
+ ... | r~ , r~ = r~ , r~
+ isAllRight [] = r~ , r~
+```
+
+```agda
+ swapCover : forall {ga ze de}{th : ga <= ze}{ph : de <= ze} -> th /u\ ph -> ph /u\ th
+ swapCover (u -^, x) = swapCover u -,^ x
+ swapCover (u -,^ x) = swapCover u -^, x
+ swapCover (u -, x)  = swapCover u -, x
+ swapCover []        = []
 ```

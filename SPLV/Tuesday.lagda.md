@@ -538,22 +538,45 @@ Now go back to the interloper.
 
 ```agda
 {-(-}
-  module _ (owoto : (x  y : Data Key) ->
+  module _ (owoto : (x y : Data Key) ->
                     Splat (Le (x , y)) + Splat (Le (y , x)))
    where
 
-   TooBig : Nat * Bound * Bound -> Set
-   TooBig (n , l , u) = {!!}
+   TwoBig : Nat * Bound * Bound -> Set
+   TwoBig (n , l , u) = Data Key >< \ k -> OT23 (n , l , val k) * OT23 (n , val k , u)
+   pattern twoBig lk k ku = k , lk , ku
 
    insert : forall {n l u} ->
      Intv (<> , l , u) -> OT23 (n , l , u) ->
-        TooBig (n , l , u)
+        TwoBig (n , l , u)
       + OT23   (n , l , u)
-   insert (intv lx x xu) (leaf0 lu) = {!!}
+   insert (intv lx x xu) (leaf0 lu) = inl (twoBig (leaf0 lx) x (leaf0 xu))
    insert (intv lx x xu) (node2 lk k ku) with owoto x k
-   insert (intv lx x xu) (node2 lk k ku) | inl xk = {!!}
-   insert (intv lx x xu) (node2 lk k ku) | inr kx = {!!}
-   insert (intv lx x xu) (node3 lj j jk k ku) = {!!}
+   insert (intv lx x xu) (node2 lk k ku) | inl xk with insert (intv lx x xk) lk
+   insert (intv lx x xu) (node2 lk k ku) | inl xk | inl (twoBig lj j jk) =
+     inr (node3 lj j jk k ku)
+   insert (intv lx x xu) (node2 lk k ku) | inl xk | inr lk' = inr (node2 lk' k ku)
+   insert (intv lx x xu) (node2 lk k ku) | inr kx with insert (intv kx x xu) ku
+   insert (intv lx x xu) (node2 lk k ku) | inr kx | inl (twoBig km m mu) =
+     inr (node3 lk k km m mu)
+   insert (intv lx x xu) (node2 lk k ku) | inr kx | inr ku' = inr (node2 lk k ku')
+   insert (intv lx x xu) (node3 lj j jk k ku) with owoto x j
+   insert (intv lx x xu) (node3 lj j jk k ku) | inl xj with insert (intv lx x xj) lj
+   insert (intv lx x xu) (node3 lj j jk k ku) | inl xj | inl (twoBig li i ij) =
+     inl (twoBig (node2 li i ij) j (node2 jk k ku))
+   insert (intv lx x xu) (node3 lj j jk k ku) | inl xj | inr lj' =
+     inr (node3 lj' j jk k ku)
+   insert (intv lx x xu) (node3 lj j jk k ku) | inr jx with owoto x k
+   insert (intv lx x xu) (node3 lj j jk k ku) | inr jx | inl xk with insert (intv jx x xk) jk
+   insert (intv lx x xu) (node3 lj j jk k ku) | inr jx | inl xk | inl (twoBig ji i ik) =
+     inl (twoBig (node2 lj j ji) i (node2 ik k ku))
+   insert (intv lx x xu) (node3 lj j jk k ku) | inr jx | inl xk | inr jk' =
+     inr (node3 lj j jk' k ku)
+   insert (intv lx x xu) (node3 lj j jk k ku) | inr jx | inr kx with insert (intv kx x xu) ku
+   insert (intv lx x xu) (node3 lj j jk k ku) | inr jx | inr kx | inl (twoBig km m mu) =
+     inl (twoBig (node2 lj j jk) k (node2 km m mu))
+   insert (intv lx x xu) (node3 lj j jk k ku) | inr jx | inr kx | inr ku' =
+     inr (node3 lj j jk k ku')
 {-)-}
 ```
 
@@ -578,6 +601,12 @@ might be TooSmall back out to the root.
 
 ## Flattening
 
+```agda
+   flatten : forall {n l u} ->
+     OT23 (n , l , u) ->
+     OList (<> , l , u)
+   flatten t = {!!}
+```
 
 ## Example
 
