@@ -7,6 +7,7 @@ module Meta19.DeBruijn where
 
 open import Lib.One
 open import Lib.Sigma
+open import Lib.Equality
 open import Lib.Pi
 open import Lib.Bwd
 open import Lib.Datoid
@@ -43,6 +44,6 @@ module _ (D : TermDesign) where
  open TermDesign D
 
  data Term (i : TermSort)(ga : Bwd BindSort) : Set where
-   var : Term i ga
+   var : forall {b} ->  b <- ga  -> bindTerm b ~ i -> Term i ga
    _$_ : (c : Data (Constructor i)) -> Tuple Term (ConArgs c) ga -> Term i ga
 ```
