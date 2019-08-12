@@ -47,3 +47,4 @@ module _ (D : TermDesign) where
    var : forall {b} ->  b <- ga  -> bindTerm b ~ i -> Term i ga
    _$_ : (c : Data (Constructor i)) -> Tuple Term (ConArgs c) ga -> Term i ga
 ```
+
