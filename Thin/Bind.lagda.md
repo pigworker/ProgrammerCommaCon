@@ -18,7 +18,6 @@ module _ {X : Set}
  data _|-_  (x : X)(T : Bwd X -> Set)(ga : Bwd X) : Set where
    kk : T ga        -> (x |- T) ga
    ll : T (ga -, x) -> (x |- T) ga
-
 ```
 
 ```agda

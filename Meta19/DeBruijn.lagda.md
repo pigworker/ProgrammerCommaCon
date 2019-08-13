@@ -288,23 +288,23 @@ Now, we're ready to build terms.
 We can have package neatly.
 
 ```agda
- infix 4 _|-_
- _|-_ : Bwd Ty -> Ty -> Set
- Ga |- T = Term DesignTm T Ga
+ infix 4 _:-_
+ _:-_ : Bwd Ty -> Ty -> Set
+ Ga :- T = Term DesignTm T Ga
 
  infixl 6 _$T_
- _$T_ : forall {Ga S T} -> Ga |- S -Ty> T -> Ga |- S -> Ga |- T
+ _$T_ : forall {Ga S T} -> Ga :- S -Ty> T -> Ga :- S -> Ga :- T
  f $T s = inl _ $ f , s
 
  infixr 5 \\T_
- \\T_ : forall {Ga S T} -> Ga -, S |- T -> Ga |- S -Ty> T
+ \\T_ : forall {Ga S T} -> Ga -, S :- T -> Ga :- S -Ty> T
  \\T t = inr <> $ t
 ```
 
 Let's have Church Two again.
 
 ```agda
- church2 : forall {Ga T} -> Ga |- ((T -Ty> T) -Ty> (T -Ty> T))
+ church2 : forall {Ga T} -> Ga :- ((T -Ty> T) -Ty> (T -Ty> T))
  church2 = \\T \\T va (noth -, _ -^ _) $T
                     (va (noth -, _ -^ _) $T va (noth -, _))
 ```
