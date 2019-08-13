@@ -49,12 +49,28 @@ Now, build some basic machinery.
 The datatype of the graph should have one constructor for each line of the function,
 taking a recursive argument for each recursive call.
 
+For example, if we were to do this construction for addition, it would look like
+```example
+ _+N_ : Nat -> Nat -> Nat
+ ze   +N y = y
+ su x +N y = su (x +N y)
+
+ data Add : Nat -> Nat -> Nat -> Set where
+   addZe : forall {y}                     Add ze     y y
+   addSu : forall {x y z} -> Add x y z -> Add (su x) y (su z)
+```
+
 ```agda
  data ThinCo : forall {ga de ze}(th : ga <= de)(ph : de <= ze) -> ga <= ze -> Set where
 
  thinCo : forall {ga de ze}(th : ga <= de)(ph : de <= ze) -> < ThinCo th ph >
  thinCo th ph = {!!}
 ```
+
+In the latter, the angle brackets mean &lsquo;possibly&rsquo;, and they enclose a *predicate*:
+it's the type of dependent pairs of (i) a witness and (ii) a proof that the predicate is
+satisfied by the witness. Rather often (and certainly here), you can leave Agda to figure out
+the witness by writing `_ , t` or even `! t`, where `t` is the proof.
 
 We may now replace `-thin` by the more useful...
 
@@ -71,6 +87,15 @@ We may now replace `-thin` by the more useful...
            (ps0 ~ ps1) >< \ { r~ -> v0 ~ v1 }
  thinFun v0 v1 = {!!}
 ```
+
+In this problem, it will help to use `with` when you invoke the recursive call. Typically,
+your code will end up like this:
+
+```example
+ thinFun pat0 pat1 with thinFun th ph
+ thinFun pat0 pat0 | r~ , r~ = r~ , r~
+```
+
 
 1.5. Construct degenerate composition triangles involving the identity.
 
