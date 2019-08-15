@@ -117,7 +117,7 @@ on terms. We exploit the `#` embedding from `TermSort` to `SubTmSort` to treat
 the latter as classifying the subterms we will encounter.
 
 ```agda
- SubTm : SubTmSort -> Bwd BindSort -> Set
+ SubTm : SubTmSort -> Scope -> Set
  SubTm T ga = Tuple Term T ga
 ```
 
@@ -219,10 +219,10 @@ the types and make them pattern synonyms.
 
 Let us build the Church numeral for 2.
 ```agda
-{-+}
+{-(-}
  church2U : forall {ga} -> ULam ga
- church2U = ?
-{+-}
+ church2U = \\U \\U va (noth -, <> -^ <>) $U (va (noth -, <> -^ <>) $U va (noth -, <>))
+{-)-}
 ```
 
 ```stashed
@@ -346,10 +346,16 @@ to terms over another.
 Let's try to push a substitution through all the subterm sorts.
 
 ```agda
-{-+}
+{-(-}
  subst : forall {ga de} T -> SubTm D T ga -> Subst ga de -> SubTm D T de
- subst T t sg = {!!}
-{+-}
+ subst (# ._) (va x) sg = sg x
+ subst (# i) (c $ t) sg = c $ subst (ConArgs c) t sg
+ subst One' <> sg = <>
+ subst (S *' T) (s , t) sg = subst S s sg , subst T t sg
+ subst {de = de} (b |-' T) t sg = subst T t \
+   { (x -^ _) -> IWant (Term D _ de -> Term D _ (de -, b)) (sg x)
+   ; (x -, _) -> va (noth -, b) }
+{-)-}
 ```
 
 
