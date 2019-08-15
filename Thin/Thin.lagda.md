@@ -36,6 +36,14 @@ module _ {X : Set} where
 ```
 
 ```agda
+ nothU : forall {ga}(th ph : [] <= ga) -> th ~ ph
+ nothU (th -^ x) (ph -^ .x) with nothU th ph
+ ... | r~ = r~
+ nothU [] [] = r~
+```
+
+
+```agda
  envPos : forall {ga} -> Env (_<- ga) ga
  envPos {[]} = []
  envPos {ga -, x} = env (_-^ x) envPos -, (noth -, x)

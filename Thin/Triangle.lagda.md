@@ -58,6 +58,7 @@ module _ {X : Set} where
  [] -io = []
 ```
 
+
 ```agda
  splatTri : forall {ga de ze}{th : ga <= de}{ph : de <= ze} -> Splatoid
  Splat (splatTri {th = th} {ph = ph}) = <([ th - ph ]~_)>
@@ -112,3 +113,16 @@ module _ {X : Set} where
  ... | v013 ^ v023' with splat splatTri (! v023) (! v023')
  ... | r~ = v013 ^ v123
 ```
+
+```agda
+ io-~ : forall {ga de}(th : ga <= de) -> io -<= th ~ th
+ io-~ th with tri io th | io- th
+ ... | _ , v | w with splat splatTri (! v) (! w)
+ ... | r~ = r~
+ 
+ _~-io : forall {ga de}(th : ga <= de) -> th -<= io ~ th
+ _~-io th with tri th io | th -io
+ ... | _ , v | w with splat splatTri (! v) (! w)
+ ... | r~ = r~
+```
+

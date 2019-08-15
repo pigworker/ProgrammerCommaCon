@@ -76,6 +76,51 @@ must, in particular, form a *pullback*.
 ```
 
 ```agda
+ pullU : forall {ga ga0 ga1}{th0 : ga0 <= ga}{th1 : ga1 <= ga}
+      -> {b' : <(_<= ga0) :* (_<= ga1)>} -> let ph0' ^ ph1' = b' in
+         (x : Square (ph0' ^ th0) (ph1' ^ th1))             -- any old square
+      -> {b : <(_<= ga0) :* (_<= ga1)>} -> let ph0 ^ ph1 = b in
+         {y : Square (ph0 ^ th0)  (ph1 ^ th1)} -> Pullback y    -- a pullback
+      -> <([_- ph0 ]~ ph0') :* ([_- fst y ]~ fst x) :* ([_- ph1 ]~ ph1')>
+ pullU (v0 -^ x   ^  v1 -^ .x)  (p -^ .x)  with pullU (v0 ^ v1) p
+ ... | ! w0 , w1 , w2 = ! w0 , w1 -^ x , w2
+ pullU (v0 -^ x   ^  v1 -^, .x) (p -^, .x) with pullU (v0 ^ v1) p
+ ... | ! w0 , w1 , w2 = ! w0 , w1 -^ x , w2 -^ x
+ pullU (v0 -^, x  ^  v1 -^ .x)  (p -,^ .x) with pullU (v0 ^ v1) p
+ ... | ! w0 , w1 , w2 = ! w0 -^ x , w1 -^ x , w2
+ pullU (v0 -^, x  ^  v1 -^, .x) (p -, .x)  with pullU (v0 ^ v1) p
+ ... | ! w0 , w1 , w2 = ! w0 -^, x , w1 -^, x , w2 -^, x
+ pullU (v0 -, x   ^  v1 -, .x)  (p -, .x)  with pullU (v0 ^ v1) p
+ ... | ! w0 , w1 , w2 = ! w0 -, x , w1 -, x , w2 -, x
+ pullU ([] ^ []) [] = ! [] , [] , []
+```
+
+```useless
+ stayDisjoint : forall {ga0 ga ze de de0}{th : ga <= ze}{ph : de <= ze} ->
+   {th0 : ga0 <= ze}{ph0 : de0 <= ze} ->
+   <([_- th ]~ th0)> -> Disjoint th ph -> <([_- ph ]~ ph0)> ->
+                        Disjoint th0 ph0
+ stayDisjoint (! v0 -^ .x) (d -^ x) (! v1 -^ .x)
+   with stayDisjoint (! v0) d (! v1)
+ ... | d' = d' -^ x
+ stayDisjoint (! v0 -^ .x) (d -^, x) (! v1 -^, .x)
+   with stayDisjoint (! v0) d (! v1)
+ ... | d' = d' -^ x
+ stayDisjoint (! v0 -^ .x) (d -^, x) (! v1 -, .x)
+   with stayDisjoint (! v0) d (! v1)
+ ... | d' = d' -^, x
+ stayDisjoint (! v0 -^, .x) (d -,^ x) (! v1 -^ .x)
+   with stayDisjoint (! v0) d (! v1)
+ ... | d' = d' -^ x
+ stayDisjoint (! v0 -, .x) (d -,^ x) (! v1 -^ .x)
+   with stayDisjoint (! v0) d (! v1)
+ ... | d' = d' -,^ x
+ stayDisjoint (! []) [] (! []) = []
+               
+```
+
+
+```agda
  noth-pull : forall {ga de}(th : ga <= de) -> Pullback (noth- noth ^ noth- th)
  noth-pull (th -^ x) = noth-pull th -^ x
  noth-pull (th -, x) = noth-pull th -^, x

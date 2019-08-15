@@ -5,6 +5,7 @@ module Thin.Cover where
 
 open import Lib.Bwd
 open import Lib.Sigma
+open import Lib.Pi
 open import Lib.Equality
 open import Thin.Thin
 open import Thin.Triangle
@@ -29,10 +30,14 @@ module _ {X : Set} where
 ```
 
 ```agda
- _/+\_ : forall {ga ze de : Bwd X}(th : ga <= ze)(ph : de <= ze) ->
+ Cop : forall {ga ze de : Bwd X}(th : ga <= ze)(ph : de <= ze) -> Set
+ Cop {ga}{ze}{de} th ph =
          (_ >< \ ze' -> ga <= ze' * ze' <= ze * de <= ze')
          >< \ { (_ , th' , ps , ph') ->
          [ th' - ps ]~ th * th' /u\ ph' * [ ph' - ps ]~ ph }
+
+ _/+\_ : forall {ga ze de : Bwd X}(th : ga <= ze)(ph : de <= ze) ->
+         Cop th ph
  (th -^ x) /+\ (ph -^ .x) =
    let ! v , u , w = th /+\ ph in ! v -^ x  , u       , w -^ x
  (th -^ x) /+\ (ph -, .x) =
@@ -62,6 +67,53 @@ module _ {X : Set} where
       outl    : F :^ ga
       outr    : G :^ ga
       cover   : snd (snd outl) /u\ snd (snd outr)
+
+ module _ {F G : Bwd X -> Set} where
+
+  data Pair {ga} : F :^ ga -> G :^ ga -> (F /*\ G) :^ ga -> Set
+    where
+    pair : forall {de0}(f : F de0){th0 : de0 <= ga}
+                  {de1}(g : G de1){th1 : de1 <= ga}
+                  (c : Cop th0 th1) ->
+           let (! ph0 , ps , ph1) , v0 , u , v1 = c
+           in  Pair (f ^ th0) (g ^ th1) (rp (f ^ ph0) (g ^ ph1) u ^ ps)
+
+  mkPair : forall {ga}(f : F :^ ga)(g : G :^ ga) -> < Pair f g >
+  mkPair (f ^ th) (g ^ ph) = ! pair f g (th /+\ ph)
+
+ _/,\_ : forall {F G : Bwd X -> Set} ->
+         [ (F :^_) -:> (G :^_) -:> ((F /*\ G) :^_) ]
+ f /,\ g = fst (mkPair f g)
+```
+
+```agda
+ copU : forall {ga ze de : Bwd X}{th : ga <= ze}{ph : de <= ze} ->
+        {ze0 : Bwd X}{th0 : ga <= ze0}{ph0 : de <= ze0}{ps0 : ze0 <= ze} ->
+        [ th0 - ps0 ]~ th -> [ ph0 - ps0 ]~ ph ->
+        (c : Cop th ph) -> let (_ , th' , ps' , ph') , v , w = c
+        in 
+
+           <([ th' -_]~ th0) :*
+            ([_- ps0 ]~ ps') :*
+            ([ ph' -_]~ ph0)>
+ copU (v0 -^ x) (v1 -^ .x) (! w0 -^, .x , () , w1 -^, .x)
+ copU (v0 -^, x) (v1 -^, .x) (! w0 -^, .x , () , w1 -^, .x)
+ copU (v0 -^ x) (v1 -^ .x) (! w0 -^ .x , u , w1 -^ .x)
+   with copU v0 v1 (! w0 , u , w1)
+ ... | ! t0 , t1 , t2 = ! t0 , t1 -^ x , t2
+ copU (v0 -^, x) (v1 -^, .x) (! w0 -^ .x , u , w1 -^ .x)
+   with copU v0 v1 (! w0 , u , w1)
+ ... | ! t0 , t1 , t2 = ! t0 -^ x , t1 -^, x , t2 -^ x
+ copU (v0 -^, x) (v1 -, .x) (! w0 -^, .x , u -^, .x , w1 -, .x)
+   with copU v0 v1 (! w0 , u , w1)
+ ... | ! t0 , t1 , t2 = ! t0 -^, x , t1 -, x , t2 -, x
+ copU (v0 -, x) (v1 -^, .x) (! w0 -, .x , u -,^ .x , w1 -^, .x)
+   with copU v0 v1 (! w0 , u , w1)
+ ... | ! t0 , t1 , t2 = ! t0 -, x , t1 -, x , t2 -^, x
+ copU (v0 -, x) (v1 -, .x) (! w0 -, x , u -, x , w1 -, x)
+   with copU v0 v1 (! w0 , u , w1)
+ ... | ! t0 , t1 , t2 = ! t0 -, x , t1 -, x , t2 -, x
+ copU [] [] (! [] , [] , []) = ! [] , [] , []
 ```
 
 ```agda
