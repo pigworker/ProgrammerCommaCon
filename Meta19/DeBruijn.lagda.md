@@ -372,8 +372,6 @@ Let's do that in new module that we want to keep.
 ```agda
 module _ (D : TermDesign) where
  open TermDesign D
-
- postulate IWant : (This : Set) -> This  -- for pretending to solve a problem.
 ```
 
 We represented variables in `ga` by thinnings into `ga`. So, by

@@ -48,7 +48,7 @@ module _ {X : Set} where
  ... | v4 ^ w4 | v5 ^ w5
    with pullU (w4 ^ w5) (lrdis p)
  ... | [] , v6 , v7 , v8
-   with nothU ch0 noth | nothU ch1 noth | nothU om noth
+   with noth~ ch0 noth | noth~ ch1 noth | noth~ om noth
  ... | r~ | r~ | r~
    with splat splatTri (! v0') (! noth- ps0)
       | splat splatTri (! v1') (! noth- ps1)

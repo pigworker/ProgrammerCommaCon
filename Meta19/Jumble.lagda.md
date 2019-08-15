@@ -199,7 +199,7 @@ module _ (D : TermDesign) where
   workerS (# i) (c $ t) th sg with workerS (ConArgs c) t th sg
   ... | ! t' = ! (c $ t')
   fst (workerS One' r~ th sg) = _
-  snd (workerS One' r~ th sg) rewrite nothU th noth = <>
+  snd (workerS One' r~ th sg) rewrite noth~ th noth = <>
   workerS (S *' T) (rp (s ^ th0) (t ^ th1) u) th sg with tri th0 th | tri th1 th
   ... | ph0 , v0 | ph1 , v1 with workerS S s ph0 sg | workerS T t ph1 sg
   ... | ! s' | ! t' = ! pr (pair s t (! v0 , u , v1)) s' t' (snd (mkPair _ _))

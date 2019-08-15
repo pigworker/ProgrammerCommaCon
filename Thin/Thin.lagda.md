@@ -36,10 +36,10 @@ module _ {X : Set} where
 ```
 
 ```agda
- nothU : forall {ga}(th ph : [] <= ga) -> th ~ ph
- nothU (th -^ x) (ph -^ .x) with nothU th ph
+ noth~ : forall {ga}(th ph : [] <= ga) -> th ~ ph
+ noth~ (th -^ x) (ph -^ .x) with noth~ th ph
  ... | r~ = r~
- nothU [] [] = r~
+ noth~ [] [] = r~
 ```
 
 
