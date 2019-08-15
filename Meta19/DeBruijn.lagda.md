@@ -219,10 +219,18 @@ the types and make them pattern synonyms.
 
 Let us build the Church numeral for 2.
 ```agda
+{-+}
+ church2U : forall {ga} -> ULam ga
+ church2U = ?
+{+-}
+```
+
+```stashed
  church2U : forall {ga} -> ULam ga
  church2U = \\U \\U va (noth -, <> -^ <>) $U
                          (va (noth -, <> -^ <>) $U va (noth -, <>))
 ```
+
 Note to non-Cylons: the signal in a variable is the `,` and the `^`s.
 They show you *spatially* to which binder they point, left-to-right.
 
@@ -304,7 +312,13 @@ We can have package neatly.
 Let's have Church Two again.
 
 ```agda
+{-+}
  church2 : forall {Ga T} -> Ga :- ((T -Ty> T) -Ty> (T -Ty> T))
+ church2 = ?
+{+-}
+```
+
+```stashed
  church2 = \\T \\T va (noth -, _ -^ _) $T
                     (va (noth -, _ -^ _) $T va (noth -, _))
 ```
@@ -332,7 +346,14 @@ to terms over another.
 Let's try to push a substitution through all the subterm sorts.
 
 ```agda
+{-+}
  subst : forall {ga de} T -> SubTm D T ga -> Subst ga de -> SubTm D T de
+ subst T t sg = {!!}
+{+-}
+```
+
+
+```stashed
  subst          (# i)     (va x)  sg = sg x
  subst          (# i)     (c $ t) sg = c $ subst (ConArgs c) t sg
  subst          One'      <>      sg = <>
@@ -361,6 +382,13 @@ useful that scope extension is a functor on thinnings, because we
 need exactly that functor when we go under a binder.
 
 ```agda
+{-+}
+ thin : forall {ga de} T -> SubTm D T ga -> ga <= de -> SubTm D T de
+ thin T t th = ?
+{+-}
+```
+
+```stashed
  thin : forall {ga de} T -> SubTm D T ga -> ga <= de -> SubTm D T de
  thin (# i)     (va x)  th = va (x -<= th)
  thin (# i)     (c $ t) th = c $ thin (ConArgs c) t th
@@ -375,6 +403,7 @@ Now we have the missing ingredient!
 ## Substitution (Second Attempt)
 
 ```agda
+{-+}
  Subst : Scope -> Scope -> Set
  Subst ga de = forall {b} ->  b <- ga  -> Term D (bindTerm b) de
 
@@ -387,6 +416,7 @@ Now we have the missing ingredient!
    { (x -, b) -> va (noth -, b)
    ; (x -^ b) -> thin (# _) (sg x) (io -^ b)
    }
+{+-}
 ```
 
 
