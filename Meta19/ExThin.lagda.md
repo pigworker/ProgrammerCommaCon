@@ -62,7 +62,6 @@ For example, if we were to do this construction for addition, it would look like
  data Add : Nat -> Nat -> Nat -> Set where
    addZe : forall {y}                     Add ze     y y
    addSu : forall {x y z} -> Add x y z -> Add (su x) y (su z)
-{+-}
 ```
 
 ```agda

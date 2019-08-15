@@ -30,14 +30,14 @@ module _ {X : Set} where
 ```
 
 ```agda
- Cop : forall {ga ze de : Bwd X}(th : ga <= ze)(ph : de <= ze) -> Set
- Cop {ga}{ze}{de} th ph =
+ Coproduct : forall {ga ze de : Bwd X}(th : ga <= ze)(ph : de <= ze) -> Set
+ Coproduct {ga}{ze}{de} th ph =
          (_ >< \ ze' -> ga <= ze' * ze' <= ze * de <= ze')
          >< \ { (_ , th' , ps , ph') ->
          [ th' - ps ]~ th * th' /u\ ph' * [ ph' - ps ]~ ph }
 
  _/+\_ : forall {ga ze de : Bwd X}(th : ga <= ze)(ph : de <= ze) ->
-         Cop th ph
+         Coproduct th ph
  (th -^ x) /+\ (ph -^ .x) =
    let ! v , u , w = th /+\ ph in ! v -^ x  , u       , w -^ x
  (th -^ x) /+\ (ph -, .x) =
@@ -74,7 +74,7 @@ module _ {X : Set} where
     where
     pair : forall {de0}(f : F de0){th0 : de0 <= ga}
                   {de1}(g : G de1){th1 : de1 <= ga}
-                  (c : Cop th0 th1) ->
+                  (c : Coproduct th0 th1) ->
            let (! ph0 , ps , ph1) , v0 , u , v1 = c
            in  Pair (f ^ th0) (g ^ th1) (rp (f ^ ph0) (g ^ ph1) u ^ ps)
 
@@ -90,7 +90,7 @@ module _ {X : Set} where
  copU : forall {ga ze de : Bwd X}{th : ga <= ze}{ph : de <= ze} ->
         {ze0 : Bwd X}{th0 : ga <= ze0}{ph0 : de <= ze0}{ps0 : ze0 <= ze} ->
         [ th0 - ps0 ]~ th -> [ ph0 - ps0 ]~ ph ->
-        (c : Cop th ph) -> let (_ , th' , ps' , ph') , v , w = c
+        (c : Coproduct th ph) -> let (_ , th' , ps' , ph') , v , w = c
         in 
 
            <([ th' -_]~ th0) :*
