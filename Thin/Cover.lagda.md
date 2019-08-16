@@ -135,3 +135,14 @@ module _ {X : Set} where
  swapCover (u -, x)  = swapCover u -, x
  swapCover []        = []
 ```
+
+
+```agda
+ allLeft : forall {ga} -> io /u\ noth {ga = ga}
+ allLeft = swapCover allRight
+
+ isAllLeft : forall {ga ze}{th : ga <= ze}{ph : [] <= ze}(u : th /u\ ph)
+   -> (ga ~ ze) >< \ { r~ -> th ~ io }
+ isAllLeft u with isAllRight (swapCover u)
+ ... | r~ , r~ = r~ , r~
+```

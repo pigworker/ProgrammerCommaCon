@@ -214,15 +214,17 @@ module _ (D : TermDesign) where
   record SplitSub (ga de : Scope) : Set where
     field
       passive active : Scope
-      parti : passive <-[ ga ]-> active
-      passiveThin : passive <= de
-      activeSb : Env (\ b -> CdB (bindTerm b) de) active
+      parti          : passive <-[ ga ]-> active
+      passiveThin    : passive <= de
+      activeSb       : Env (\ b -> CdB (bindTerm b) de) active
 
     hit : forall {b} -> b <- ga -> CdB (bindTerm b) de
     hit x with oneCover x (lrcov parti)
     hit x | inl (y , v) = var (only r~) ^ (y -<= passiveThin)
     hit x | inr (y , v) with y <? activeSb
     ... | [] -, t = t
+
+  open SplitSub public
 
   _<?s_ : forall {ze ga de}(th : ze <= ga)(sg : SplitSub ga de) -> SplitSub ze de
   th <?s record { passive = pa ; active = ac ;
@@ -236,7 +238,46 @@ module _ (D : TermDesign) where
         ; passiveThin = ph' -<= ph
         ; activeSb    = th' <? tz
         }
-  
+
+  wkSplitSub : forall {ga de}(sg : SplitSub ga de) b -> SplitSub (ga -, b) (de -, b)
+  wkSplitSub record
+      { passive      = pa
+      ; active       = ac
+      ; parti        = record { lrcov = u ; lrdis = d }
+      ; passiveThin  = ph
+      ; activeSb     = tz
+      } b =
+    record
+      { passive      = pa -, b
+      ; active       = ac
+      ; parti        = record { lrcov = u -,^ b ; lrdis = d -,^ b }
+      ; passiveThin  = ph -, b
+      ; activeSb     = env ((_:- (io -^ b))) tz
+      }
+
+  IsSnoc : Scope -> Splatoid
+  IsSnoc [] = SplatZero
+  IsSnoc (_ -, _) = SplatOne
+
+  splitSub  : forall {ga de} T -> Tight Trrm T :^ ga -> SplitSub ga de -> Tight Trrm T :^ de
+  splitWork : forall {ga de} T -> Tight Trrm T ga ->
+                (sb : SplitSub ga de){_ : Splat (IsSnoc (active sb))} -> SubCdB T de
+   
+  splitSub T (t ^ th) sb with th <?s sb
+  ... | sb'@record { active = _ -, _ }
+    = splitWork T t sb'
+  ... | record { active = [] ; parti = record { lrcov = u } ; passiveThin = ph }
+    with isAllLeft u
+  ... | r~ , r~ = t ^ ph
+  splitWork (# _) (var (only r~))
+    record { parti = record { lrcov = [] -^, x } ; activeSb = [] -, t } = t
+  splitWork (# _) (var (only r~)) record { parti = record { lrcov = [] -,^ x } } {()}
+  splitWork (# i) (c $ t) sb {p} = (c $_) $: splitWork (ConArgs c) t sb {p}
+  splitWork One' r~ record { parti = record { lrcov = [] } } {}
+  splitWork (S *' T)  (rp s t _) sb = splitSub S s sb /,\ splitSub T t sb
+  splitWork (b |-' T) (kk t) sb {p} = kk $: splitWork T t sb {p}
+  splitWork (b |-' T) (ll t) sb {p} = \\ splitWork T t (wkSplitSub sb b) {p}
+
 
 {-)-}
 ```
