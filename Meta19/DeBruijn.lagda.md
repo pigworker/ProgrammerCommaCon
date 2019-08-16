@@ -386,10 +386,14 @@ useful that scope extension is a functor on thinnings, because we
 need exactly that functor when we go under a binder.
 
 ```agda
-{-+}
+{-(-}
  thin : forall {ga de} T -> SubTm D T ga -> ga <= de -> SubTm D T de
- thin T t th = ?
-{+-}
+ thin (# _) (va x) th = va (x -<= th)
+ thin (# i) (c $ t) th = c $ thin (ConArgs c) t th
+ thin One' <> th = <>
+ thin (S *' T) (s , t) th = thin S s th , thin T t th
+ thin (b |-' T) t th = thin T t (th -, b)
+{-)-}
 ```
 
 ```stashed
@@ -407,7 +411,7 @@ Now we have the missing ingredient!
 ## Substitution (Second Attempt)
 
 ```agda
-{-+}
+{-(-}
  Subst : Scope -> Scope -> Set
  Subst ga de = forall {b} ->  b <- ga  -> Term D (bindTerm b) de
 
@@ -418,9 +422,9 @@ Now we have the missing ingredient!
  subst (S *' T) (s , t) sg = subst S s sg , subst T t sg
  subst (b |-' T) t sg = subst T t \
    { (x -, b) -> va (noth -, b)
-   ; (x -^ b) -> thin (# _) (sg x) (io -^ b)
+   ; (x -^ b) -> thin (# _) (sg x) (io -^ b) -- thin (# _) (sg x) (io -^ b)
    }
-{+-}
+{-)-}
 ```
 
 

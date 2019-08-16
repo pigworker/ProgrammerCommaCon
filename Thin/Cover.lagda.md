@@ -66,7 +66,7 @@ module _ {X : Set} where
     field
       outl    : F :^ ga
       outr    : G :^ ga
-      cover   : snd (snd outl) /u\ snd (snd outr)
+      cover   : thinning outl /u\ thinning outr
 
  module _ {F G : Bwd X -> Set} where
 

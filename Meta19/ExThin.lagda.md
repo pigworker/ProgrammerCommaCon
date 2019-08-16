@@ -34,19 +34,23 @@ Now, build some basic machinery.
 1.1. Construct the identity thinning.
 
 ```agda
-{-+}
+{-(-}
  io : {ga : Bwd X} -> ga <= ga
- io {ga} = {!!}
-{+-}
+ io {[]} = []
+ io {ga -, x} = io {ga} -, x
+{-)-}
 ```
 
 1.2. Implement composition of thinnings as a function.
 
 ```agda
-{-+}
+{-(-}
  _-thin_ : forall {ga de ze}(th : ga <= de)(ph : de <= ze) -> ga <= ze
- th -thin ph = {!!}
-{+-}
+ th -thin (ph -^ x) = (th -thin ph) -^ x
+ (th -^ .x) -thin (ph -, x) = (th -thin ph) -^ x
+ (th -, .x) -thin (ph -, x) = (th -thin ph) -, x
+ [] -thin [] = []
+{-)-}
 ```
 
 1.3. Inductively define the graph of composition and define its generating function.
