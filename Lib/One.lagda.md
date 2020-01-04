@@ -4,7 +4,7 @@
 module Lib.One where
 ```
 
-In the spirit of naming types after the number of values in them, |One| is the
+In the spirit of naming types after the number of values in them, `One` is the
 type with one value.
 
 ```agda

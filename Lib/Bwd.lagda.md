@@ -32,4 +32,7 @@ module _ {X : Set} where
 
  env : forall {P Q} -> [ P -:> Q ] -> [ Env P -:> Env Q ]
  env f pz = purE f $E pz
+
+ top : forall {P xz x} -> Env P (xz -, x) -> P x
+ top (pz -, p) = p
 ```

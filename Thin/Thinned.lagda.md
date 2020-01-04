@@ -31,6 +31,10 @@ module _ {X : Set} where
  _:-_ : {T : Bwd X -> Set} -> [ (T :^_) -:> Kripke (T :^_) ]
  (t ^ th) :- ph = t ^ (th -<= ph)
 
+ _:-^_ : {T : Bwd X -> Set} ->
+         {xz : Bwd X} -> T :^ xz -> (x : X) -> T :^ (xz -, x)
+ (t ^ th) :-^ x = t ^ (th -^ x)
+
  _$:_ : {S T : Bwd X -> Set} -> [ S -:> T ] -> [ (S :^_) -:> (T :^_) ]
  f $: (s ^ th) = f s ^ th
 ```

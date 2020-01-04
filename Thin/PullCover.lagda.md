@@ -17,6 +17,25 @@ open import Thin.Triangle
 ```agda
 module _ {X : Set} where
 
+ selCover : forall {ga de0 de1 de : Bwd X}(th : ga <= de)
+   {ph0 : de0 <= de}{ph1 : de1 <= de} -> ph0 /u\ ph1 ->
+   (<(_<= de0) :* (_<= ga)> * <(_<= de1) :* (_<= ga)>) >< \ d ->
+   let th0 ^ ps0 , th1 ^ ps1 = d in ps0 /u\ ps1
+ selCover (th -^ .x) (u -^, x) with selCover th u
+ ... | (th0 ^ ps0 , th1 ^ ps1) , u' = (th0 ^ ps0 , th1 -^ x ^ ps1) , u'
+ selCover (th -^ .x) (u -,^ x) with selCover th u
+ ... | (th0 ^ ps0 , th1 ^ ps1) , u' = (th0 -^ x ^ ps0 , th1 ^ ps1) , u'
+ selCover (th -^ .x) (u -, x) with selCover th u
+ ... | (th0 ^ ps0 , th1 ^ ps1) , u' = (th0 -^ x ^ ps0 , th1 -^ x ^ ps1) , u'
+ selCover (th -, .x) (u -^, x) with selCover th u
+ ... | (th0 ^ ps0 , th1 ^ ps1) , u' = (th0 ^ ps0 -^ x , th1 -, x ^ ps1 -, x) , u' -^, x 
+ selCover (th -, .x) (u -,^ x) with selCover th u
+ ... | (th0 ^ ps0 , th1 ^ ps1) , u' = (th0 -, x ^ ps0 -, x , th1 ^ ps1 -^ x) , u' -,^ x
+ selCover (th -, .x) (u -, x) with selCover th u
+ ... | (th0 ^ ps0 , th1 ^ ps1) , u' = (th0 -, x ^ ps0 -, x , th1 -, x ^ ps1 -, x) , u' -, x
+ selCover [] [] = ([] ^ [] , [] ^ []) , []
+   
+
  pullCover : forall {ga de0 de1 de : Bwd X}(th : ga <= de)
    {ph0 : de0 <= de}{ph1 : de1 <= de} -> ph0 /u\ ph1 ->
    (<(_<= de0) :* (_<= ga)> * <(_<= de1) :* (_<= ga)>) >< \ d ->
