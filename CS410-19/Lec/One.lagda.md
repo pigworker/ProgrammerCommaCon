@@ -4,13 +4,6 @@ Binary Search Trees
 This file is literate Agda markdown. Here is the obligatory module header.
 It looks quite like a Haskell module header...
 
-[This repo](https://github.com/pigworker/ProgrammerCommaCon) is linked from
-this sentence so that people watching the lecture know where the repo is.
-
-It's pretty to look at this file rendered as html on github, but it's better
-to actually load it in emacs, because then you can right-click on things to
-explore their definitions
-
 ```agda
 module CS410-19.Lec.One where
 
@@ -26,7 +19,14 @@ that module from another file."; `open` means "I want that module's contents
 in my current scope.". Haskell mashes the two ideas together, but it's
 sometimes handy to separate them.
 
-Yes, this will be a bit of a spot-the-difference game. As well as a development
+[This repo](https://github.com/pigworker/ProgrammerCommaCon) is linked from
+this sentence so that people watching the lecture know where the repo is.
+
+It's pretty to look at this file rendered as html on github, but it's better
+to actually load it in emacs, because then you can right-click on things to
+explore their definitions
+
+Now, this will be a bit of a spot-the-difference game. As well as a development
 of *sorting* by building a binary search tree and then flattening it.
 
 More differences:
