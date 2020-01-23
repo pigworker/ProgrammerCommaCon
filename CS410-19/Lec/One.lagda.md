@@ -4,7 +4,8 @@ Binary Search Trees
 This file is literate Agda markdown. Here is the obligatory module header.
 It looks quite like a Haskell module header...
 
-[This repo](https://github.com/pigworker/ProgrammerCommaCon)
+[This repo](https://github.com/pigworker/ProgrammerCommaCon) is linked from
+this sentence so that people watching the lecture know where the repo is.
 
 It's pretty to look at this file rendered as html on github, but it's better
 to actually load it in emacs, because then you can right-click on things to
