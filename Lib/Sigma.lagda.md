@@ -28,7 +28,7 @@ module _ {k l} where
  open _><_ public
 
  _*_ : Set k -> Set l -> Set (lmax k l)
- S * T = S >< ko T
+ S * T = S >< \ _ -> T
 ```
 
 They are &lsquo;dependent sums&rsquo;, hence &Sigma;-types, in that they
