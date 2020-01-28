@@ -423,3 +423,8 @@ but its full dependent type is more...flexible. It's
 like edges in a graph, meeting at the vertices they share.
 
 That's probably enough for this file.
+
+Except that you might want to think about how to refactor
+`flatten` to avoid left-nested calls to `flatNode`. The
+traditional trick of introducing an accumulator is a good
+start, but it's not quite enough to solve the problem...
