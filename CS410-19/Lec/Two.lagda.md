@@ -33,7 +33,10 @@ module _ where  -- Conor, remember to say something about what this is for
   open Preorder
 
   leNat : Preorder LeNat
-  leNat = {!!}
+  reflexive leNat ze = <>
+  reflexive leNat (su x) = reflexive leNat x
+  transitive leNat ze y z xy yz = <>
+  transitive leNat (su x) (su y) (su z) xy yz = transitive leNat x y z xy yz
 ```
 
 ```agda

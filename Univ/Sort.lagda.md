@@ -15,7 +15,7 @@ open import Thin.Cover
 open import Thin.Pullback
 open import Thin.Parti
 ```
-
+<
 ```agda
 data Ki : Set1 where
   co : Ki
@@ -39,14 +39,14 @@ module SORT
  where
 
  data Bound : Set where
-   bot : Bound
-   val : Key -> Bound
-   top : Bound
+   -inf : Bound
+   key  : Key -> Bound
+   +inf : Bound
 
  LeB : Bound * Bound -> Splatoid
- LeB (bot   ,     y) = SplatOne
- LeB (val x , val y) = Le x y
- LeB (x     ,   top) = SplatOne
+ LeB (-inf   ,     y) = SplatOne
+ LeB (key x , key y) = Le x y
+ LeB (x     ,   +inf) = SplatOne
  LeB (x     ,     y) = SplatZero -- otherwise
 
  record Mutoid : Set1 where
@@ -62,10 +62,10 @@ module SORT
  Muto (LeM lu) kz _ = kz ~ []
 
  _*K*_ : (Bound * Bound -> Mutoid) -> (Bound * Bound -> Mutoid) -> (Bound * Bound -> Mutoid)
- Muta ((S *K* T) (l , u)) = Key >< \ m -> Muta (S (l , val m)) * Muta (T (val m , u))
+ Muta ((S *K* T) (l , u)) = Key >< \ m -> Muta (S (l , key m)) * Muta (T (key m , u))
  Muto ((S *K* T) (l , u)) kz (m , s , t) = 
    (Bwd Key * Bwd Key * Bwd Key) >< \ (iz , ijz , jz) ->
-   ([] -, m) <-[ kz ]-> ijz * Muto (S (l , val m)) iz s * iz <-[ ijz ]-> jz * Muto (T (val m , u)) jz t
+   ([] -, m) <-[ kz ]-> ijz * Muto (S (l , key m)) iz s * iz <-[ ijz ]-> jz * Muto (T (key m , u)) jz t
 
  _:><_ : (S : Set)(T : S -> Mutoid) -> Mutoid
  Muta (S :>< T) = S >< \ s -> Muta (T s)
