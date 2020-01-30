@@ -35,7 +35,8 @@ LeNat x y = ?? -- agda-mode gets confused by question marks in non-Agda code blo
 the `Splatoid` type had a *yellow* background. That's because Agda was sus-*pish*-ous
 of it. Specifically, Agda was unable to infer the hidden `Level` argument to `Splatoid`.
 As soon as we fill in `SplatOne` or `SplatZero`, the `Level` is determined to be the
-lowest level.)
+lowest level. By the way, I've been colouring in dependently typed programs
+[for twenty years](http://strictlypositive.org/a-case/).)
 
 (What's this `Level` business? Well, to avoid logical paradoxes, e.g.,
 [Russell's Paradox](https://en.wikipedia.org/wiki/Russell%27s_paradox),
