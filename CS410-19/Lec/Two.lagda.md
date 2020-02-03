@@ -68,7 +68,7 @@ record Preorder {X : Set}(R : X -> X -> Splatoid) : Set where
 
 You can picture a preorder as a diagram of blobs corresponding to the
 elements of `X`, some of which are joined by arrows corresponding to
-evidence of related ness between two elements.
+evidence of relatedness between two elements.
 
 ```asciiart
         o
@@ -151,7 +151,9 @@ Extra x z = Nat >< \ y -> x +N y ~ z
 
 ```agda
 extra : forall x z -> Splat (LeNat x z) -> Extra x z
-extra x z xz = {!!}
+extra ze z xz = z , r~
+extra (su x) (su z) xz with extra x z xz
+extra (su x) (su z) xz | y , q = y , (su $~ q)
 ```
 
 ```agda
@@ -170,7 +172,16 @@ module _ where
   open Monoid
   
   monoid+N : Monoid Nat
-  monoid+N = {!!}
+  neutral monoid+N = ze
+  compose monoid+N = _+N_
+  compose-neutral-thing monoid+N x = r~
+  compose-thing-neutral monoid+N ze = r~
+  compose-thing-neutral monoid+N (su x)
+    = su $~ compose-thing-neutral monoid+N x
+    {-rewrite compose-thing-neutral monoid+N x = r~ -}
+  compose-compose monoid+N ze y z = r~
+  compose-compose monoid+N (su x) y z =
+    su $~ compose-compose monoid+N x y z
 ```
 
 ```agda
@@ -188,5 +199,8 @@ module _ where
   open Monotone
 
   monotone-x+N : Nat -> Monotone leNat leNat
-  monotone-x+N x = {!!}
+  transport (monotone-x+N x) = (x +N_)
+  respect (monotone-x+N ze) y z yz = yz
+  respect (monotone-x+N (su x)) y z yz = 
+    respect (monotone-x+N x) y z yz
 ```
