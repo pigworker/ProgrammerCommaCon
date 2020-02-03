@@ -111,6 +111,8 @@ module _ {Obj : Set}{_=>_ : Obj -> Obj -> Set}(C : SmolCat _=>_) where
     _-FROM_ = {!!}
 ```
 
+What is `C -TO Y`?
+
 ```agda
 module _ {Obj : Set}{_=>_ : Obj -> Obj -> Set}(C : SmolCat _=>_) where
   open SmolCat C
