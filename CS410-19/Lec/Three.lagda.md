@@ -88,10 +88,7 @@ module _ where
   open Monoid monoid+N
   
   EXTRA : PREORDER leNat -SmolCat> MONOID monoid+N
-  Map EXTRA = _
-  map EXTRA {x}{z} = extra x z - fst
-  map-identity EXTRA {x} = {!!}
-  map-compose EXTRA {x}{y}{z} = {!!}
+  EXTRA = ?
 ```
 
 ```agda
