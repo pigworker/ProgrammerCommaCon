@@ -13,10 +13,10 @@ open import CS410-19.Lec.Two
 ```agda
 record SmolCat {Obj : Set}(_=>_ : Obj -> Obj -> Set) : Set where
   field
-  
+
     identity : forall {T}
             -> T => T
-            
+
     compose  : forall {R S T}
             -> R => S -> S => T -> R => T
 
@@ -29,6 +29,9 @@ record SmolCat {Obj : Set}(_=>_ : Obj -> Obj -> Set) : Set where
     compose-compose : forall {R S T U}(f : R => S)(g : S => T)(h : T => U)
                    -> compose (compose f g) h ~ compose f (compose g h)
 ```
+
+![A smol cat](pomeloSmol.jpg?raw=true)
+
 
 ```agda
 module _ {X : Set}{R : X -> X -> Splatoid}(P : Preorder R) where
@@ -86,7 +89,7 @@ module _ where
   open _-SmolCat>_
   open Preorder leNat
   open Monoid monoid+N
-  
+
   EXTRA : PREORDER leNat -SmolCat> MONOID monoid+N
   EXTRA = {!!}
 ```
