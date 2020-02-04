@@ -88,7 +88,7 @@ module _ where
   open Monoid monoid+N
   
   EXTRA : PREORDER leNat -SmolCat> MONOID monoid+N
-  EXTRA = ?
+  EXTRA = {!!}
 ```
 
 ```agda
