@@ -373,10 +373,10 @@ module _ {X : Set} where
   data Splitting : {xs ys zs : List X}
                    (th : xs <: zs)(ph : ys <: zs) 
                 -> Set where
-    _-^,_ : forall {w xs ys zs}{th : xs <: zs}{ph : ys <: zs} ->
+    _-^,_ : forall w {xs ys zs}{th : xs <: zs}{ph : ys <: zs} ->
                Splitting th ph ->
                Splitting (w ^- th) (w ,- ph)
-    _-,^_ : forall {w xs ys zs}{th : xs <: zs}{ph : ys <: zs} ->
+    _-,^_ : forall w {xs ys zs}{th : xs <: zs}{ph : ys <: zs} ->
                Splitting th ph ->
                Splitting (w ,- th) (w ^- ph)
     [] : Splitting [] []
