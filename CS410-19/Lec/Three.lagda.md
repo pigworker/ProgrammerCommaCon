@@ -131,14 +131,29 @@ module _ {Obj : Set}{_=>_ : Obj -> Obj -> Set}(C : SmolCat _=>_) where
     (Y => Z) >< \ g ->
     compose C f g ~ h
 
+  triEq : forall {X}{f g : From X}{p q : Triangle X f g} ->
+          fst p ~ fst q ->
+          p ~ q
+  triEq {p = f , r~} {q = .f , r~} r~ = r~
+
   module _ (X : Obj) where
 
     _-FROM_ : SmolCat (Triangle X)
-    identity _-FROM_ {Y , f} = identity C {Y} , compose-arrow-identity C f
-    compose _-FROM_ {R , f} {S , g} {T , h} (fg , q0) (gh , q1) = compose C fg gh , {!!}
-    compose-identity-arrow _-FROM_ = {!!}
-    compose-arrow-identity _-FROM_ = {!!}
-    compose-compose _-FROM_ = {!!}
+    identity _-FROM_ {Y , f} =
+      identity C {Y} , compose-arrow-identity C f
+    compose _-FROM_ {R , f} {S , g} {T , h} (fg , q0) (gh , q1) =
+      compose C fg gh , 
+        compose C f (compose C fg gh)
+          < compose-compose C _ _ _ ]~
+        compose C (compose C f fg) gh
+          ~[ (\ a -> compose C a gh) $~ q0 >
+        compose C g gh
+          ~[ q1 >
+        h
+          [QED]
+    compose-identity-arrow _-FROM_ f = triEq (compose-identity-arrow C _)
+    compose-arrow-identity _-FROM_ f = triEq (compose-arrow-identity C _)
+    compose-compose _-FROM_ f g h = triEq (compose-compose C _ _ _)
 ```
 
 What is `C -TO Y`?
