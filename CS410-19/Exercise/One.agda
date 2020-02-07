@@ -269,7 +269,7 @@ module _ {X : Set} where
 
 -- Give composition for thinnings. Minimize the number of cases.
 
-  _-<-_ : forall {X}{xs ys zs : List X} -> xs <: ys -> ys <: zs -> xs <: zs
+  _-<-_ : forall {xs ys zs : List X} -> xs <: ys -> ys <: zs -> xs <: zs
   th -<- ph = {!!}
 
   infixl 40 _-<-_
