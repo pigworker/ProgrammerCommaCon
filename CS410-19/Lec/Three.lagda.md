@@ -158,7 +158,13 @@ module _ {Obj : Set}{_=>_ : Obj -> Obj -> Set}(C : SmolCat _=>_) where
 
 What is `C -TO Y`?
 
-```nagda
+```agda
+module _ {Obj : Set}{_=>_ : Obj -> Obj -> Set}(C : SmolCat _=>_)(Y : Obj) where
+  _-TO_ : SmolCat (Triangle (OP C) Y)
+  _-TO_ = OP C -FROM Y
+```
+
+```agda
 module _ {Obj : Set}{_=>_ : Obj -> Obj -> Set}(C : SmolCat _=>_) where
   open SmolCat C
 
@@ -169,14 +175,23 @@ module _ {Obj : Set}{_=>_ : Obj -> Obj -> Set}(C : SmolCat _=>_) where
          -> S => T -> Map S -> Map T
       map-identity : forall {T}(t : Map T)
                   -> map (identity {T}) t ~ t
+         -- why not? forall {T} -> map (identity {T}) ~ id -- \ x -> x
       map-compose  : forall {R S T}(f : R => S)(g : S => T)(r : Map R)
                   -> (map f - map g) r ~ map (compose f g) r
 ```
 
-```nagda
+```agda
 module _ (X : Set) where
   open _->Set
 
   TUPLE : OP (PREORDER leNat) ->Set
-  TUPLE = {!!}
+  Map TUPLE ze = One
+  Map TUPLE (su n) = X * Map TUPLE n
+  map TUPLE {m} {ze} mn xs = <>
+  map TUPLE {su m} {su n} mn (x , xs) = x , map TUPLE {m} {n} mn xs
+  map-identity TUPLE {ze} xs = r~
+  map-identity TUPLE {su n} (x , xs) = (x ,_) $~ map-identity TUPLE {n} xs
+  map-compose TUPLE {m} {n} {ze} mn np xs = r~
+  map-compose TUPLE {su m} {su n} {su p} mn np (x , xs) =
+    (x ,_) $~ map-compose TUPLE {m} {n} {p} mn np xs
 ```

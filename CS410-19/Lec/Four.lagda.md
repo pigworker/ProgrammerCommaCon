@@ -37,6 +37,12 @@ record Cat {l}{Obj : Set l}(_=>_ : Obj -> Obj -> Setoid l) : Set (lsuc l) where
 module _ where
   open Cat
 
-  Pointwise : Cat {lsuc lzero}{Set} \ S T -> UpS (Intensional S -Setoid> Intensional T)
-  Pointwise = ?
+  SETOID : forall {l} ->
+           Cat {lsuc l}{Setoid l} \ S T -> UpS (S -Setoid> T)
+  SETOID = {!!}
+
+  fn : forall {l}{S T : Set l}
+    -> (S -> T)
+    -> Carrier (UpS (Intensional S -Setoid> Intensional T))
+  fn f = up (f , (f $~_))
 ```
