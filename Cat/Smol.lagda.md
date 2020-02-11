@@ -23,7 +23,7 @@ is. There are at least three things which go wrong:
 2. Propositional Equality Misery: equality for arrows in Sets-and-functions should be extensional, etc.
 3. Definitional Equality Misery: when you do not get, e.g., associativity of append for free, managing the kinds of coherence you need is going to get rather bureaucratic rather quickly.
 
-Three candidate coping strategis:
+Three candidate coping strategies:
 
 * *heart* Spend your life trying to make type theory more categorical. There are people who do this and I'm with them. The situation is improving but these things take time.
 * *brain* Tell lies. Switch on "Type in Type", postulate extensionality. Get to the flavour of the ideas all the sooner.
@@ -97,3 +97,67 @@ Monoid : Set -> Set
 Monoid X = SmolCat {One} \ _ _ -> X
 ```
 
+Every category has a *dual*.
+
+```agda
+module _ {Obj : Set}{_=>_ : Obj -> Obj -> Set}(C : SmolCat _=>_) where
+
+  open SmolCat
+
+  OP : SmolCat \ S T -> T => S
+  identity OP    = identity C
+  compose OP f g = compose C g f
+  compose-identity-arrow OP = compose-arrow-identity C
+  compose-arrow-identity OP = compose-identity-arrow C
+  compose-compose OP f g h  = (compose-compose C h g f) ~o
+```
+
+
+Functors between `SmolCat`s
+---------------------------
+
+We have a `Map` action on objects, and a `map` action on arrows.
+The latter preserves identity and composition *intensionally*.
+
+```agda
+module _ {X : Set}{_=C>_ : X -> X -> Set}(C : SmolCat _=C>_)
+         {Y : Set}{_=D>_ : Y -> Y -> Set}(D : SmolCat _=D>_)
+  where
+  open SmolCat
+
+  record _-SmolCat>_ : Set where  -- functor
+    field
+      Map : X -> Y
+      map : forall {S T}
+         -> S =C> T -> Map S =D> Map T
+      map-identity : forall {T}
+                  -> map (identity C {T}) ~ identity D {Map T}
+      map-compose  : forall {R S T}(f : R =C> S)(g : S =C> T)
+                  -> map (compose C f g) ~ compose D (map f) (map g)
+```
+
+Of course, as suggested by the notation, functors make perfectly
+respectable arrows, between objects which are `SmolCat`s. We can
+define the identity functor and functor composition. We obtain
+the category of `SmolCat`s, but it is *not* itself a `SmolCat`
+because its objects are large (even though its arrows are
+small).
+
+
+Extensional Interpretations of `SmolCat`s
+-----------------------------------------
+
+```agda
+module _ {Obj : Set}{_=>_ : Obj -> Obj -> Set}(C : SmolCat _=>_) where
+  open SmolCat C
+
+  record _->Set : Set1 where
+    field
+      Map : Obj -> Set
+      map : forall {S T}
+         -> S => T -> Map S -> Map T
+      map-identity : forall {T}(t : Map T)
+                  -> map (identity {T}) t ~ t
+      map-compose  : forall {R S T}(f : R => S)(g : S => T)(r : Map R)
+                  -> (map f - map g) r ~ map (compose f g) r
+```
