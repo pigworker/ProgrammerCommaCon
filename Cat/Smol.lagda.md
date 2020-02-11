@@ -50,6 +50,15 @@ record SmolCat {Obj : Set}(_=>_ : Obj -> Obj -> Set) : Set where
       -> compose (compose f g) h ~ compose f (compose g h)
 ```
 
+It may be helpful to grab hold of arrow types, given the category.
+
+```agda
+module _ {Obj}{_=>_ : Obj -> Obj -> Set} where
+
+  _=[_>_ : Obj -> SmolCat _=>_ -> Obj -> Set
+  S =[ C > T = S => T
+```
+
 Here, we have small objects, small arrows, and equality of arrows
 is *intensional*. In particular, Sets-and-functions is *not* a `SmolCat`.
 
@@ -103,7 +112,7 @@ module _ {Obj : Set}{_=>_ : Obj -> Obj -> Set}(C : SmolCat _=>_) where
 
   open SmolCat
 
-  OP : SmolCat \ S T -> T => S
+  OP : SmolCat \ S T -> T =[ C > S
   identity OP    = identity C
   compose OP f g = compose C g f
   compose-identity-arrow OP = compose-arrow-identity C
@@ -128,10 +137,10 @@ module _ {X : Set}{_=C>_ : X -> X -> Set}(C : SmolCat _=C>_)
     field
       Map : X -> Y
       map : forall {S T}
-         -> S =C> T -> Map S =D> Map T
+         -> S =[ C > T -> Map S =[ D > Map T
       map-identity : forall {T}
                   -> map (identity C {T}) ~ identity D {Map T}
-      map-compose  : forall {R S T}(f : R =C> S)(g : S =C> T)
+      map-compose  : forall {R S T}(f : R =[ C > S)(g : S =[ C > T)
                   -> map (compose C f g) ~ compose D (map f) (map g)
 ```
 
@@ -157,6 +166,52 @@ module _ {Obj : Set}{_=>_ : Obj -> Obj -> Set}(C : SmolCat _=>_) where
          -> S => T -> Map S -> Map T
       map-identity : forall {T}(t : Map T)
                   -> map (identity {T}) t ~ t
-      map-compose  : forall {R S T}(f : R => S)(g : S => T)(r : Map R)
+      map-compose  : forall {R S T}(f : R =[ C > S)(g : S =[ C > T)(r : Map R)
                   -> (map f - map g) r ~ map (compose f g) r
+```
+
+
+Categories of Arrows
+--------------------
+
+```agda
+module _ {Obj : Set}{_=>_ : Obj -> Obj -> Set}(C : SmolCat _=>_) where
+  open SmolCat
+
+  From : Obj -> Set
+  From X = Obj >< (X =[ C >_)
+  Triangle : (X : Obj) -> From X -> From X -> Set
+  Triangle X (Y , f) (Z , h) =
+    (Y =[ C > Z) >< \ g ->
+    compose C f g ~ h
+
+  triEq : forall {X}{f g : From X}{p q : Triangle X f g} ->
+          fst p ~ fst q ->
+          p ~ q
+  triEq {p = f , r~} {q = .f , r~} r~ = r~
+
+  module _ (X : Obj) where
+
+    _-FROM_ : SmolCat (Triangle X)
+    identity _-FROM_ {Y , f} =
+      identity C {Y} , compose-arrow-identity C f
+    compose _-FROM_ {R , f} {S , g} {T , h} (fg , q0) (gh , q1) =
+      compose C fg gh , 
+        compose C f (compose C fg gh)
+          < compose-compose C _ _ _ ]~
+        compose C (compose C f fg) gh
+          ~[ (\ a -> compose C a gh) $~ q0 >
+        compose C g gh
+          ~[ q1 >
+        h
+          [QED]
+    compose-identity-arrow _-FROM_ f = triEq (compose-identity-arrow C _)
+    compose-arrow-identity _-FROM_ f = triEq (compose-arrow-identity C _)
+    compose-compose _-FROM_ f g h = triEq (compose-compose C _ _ _)
+```
+
+```agda
+module _ {Obj : Set}{_=>_ : Obj -> Obj -> Set}(C : SmolCat _=>_)(Y : Obj) where
+  _-TO_ : SmolCat (Triangle (OP C) Y)
+  _-TO_ = OP C -FROM Y
 ```
