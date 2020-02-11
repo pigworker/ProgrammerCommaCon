@@ -65,3 +65,24 @@ from Leopold Kronecker:
 > God made the natural numbers to confuse us; all else is the
 > work of man.
 
+
+Monoid structure of addition
+----------------------------
+
+```agda
+open import Cat.Smol
+
+module MONOID+N where
+  open SmolCat
+
+  monoid+N : Monoid Nat
+  identity monoid+N = 0
+  compose  monoid+N = _+N_
+  compose-identity-arrow monoid+N x = r~
+  compose-arrow-identity monoid+N ze     = r~
+  compose-arrow-identity monoid+N (su x) =
+    su $~ compose-arrow-identity monoid+N x
+  compose-compose monoid+N ze     y z = r~
+  compose-compose monoid+N (su x) y z = 
+    su $~ compose-compose monoid+N x y z
+```

@@ -7,7 +7,6 @@ module Cat.Smol where
 open import Lib.One
 open import Lib.Pi
 open import Lib.Sigma
-open import Lib.Nat
 open import Lib.Equality
 open import Lib.Splatoid
 ```
