@@ -516,6 +516,8 @@ module _ where
 
 -- Now build the Kleisli category.
 
+-- Hint: fold-rebuild and fold-fusion.
+
   KLEISLI : forall {I}(C : I >8 I) ->
             Cat \ S T -> UpS (S =K C > T)
   identity (KLEISLI C) = {!!}
@@ -526,4 +528,56 @@ module _ where
   compose-compose (KLEISLI C) = {!!}
 
 
--- TO BE CONTINUED...
+------------------------------------------------------------------------------
+-- 2.8 Combining Ways of Cutting
+------------------------------------------------------------------------------
+
+-- Suppose we know two ways, C and D, of cutting up outside shapes O to leave
+-- inside pieces in I. Show how to represent the choice of cutting in either
+-- the C way or the D way. (E.g., if we know how to cut rectangles vertically
+-- and we know how to cut rectangles horizontally, we should know how to cut
+-- rectangles either vertically or horizontally.)
+
+_+>8+_ : forall {I O} -> I >8 O -> I >8 O -> I >8 O
+(C +>8+ D) o = {!!}
+
+-- Suppose we know a way of cutting Os to make Is. Show that we can add an
+-- "orthogonal extra dimension" X to both inside and outside shapes, either
+-- on the left or on the right. Cutting in one dimension should preserve the
+-- shape in all orthogonal directions. E.g., if we know how to cut lengths,
+-- we should know how to make a vertical cut somewhere in the width of a
+-- rectangle, giving the pieces the same height as the rectangle. Ditto,
+-- swapping the roles of heights and widths.
+
+_>8|_ : forall {I O}
+    -> I >8 O
+    -> forall X
+    -> (I * X) >8 (O * X)
+C >8| X = {!!}
+
+_|>8_ : forall {I O}
+    -> forall X
+    -> I >8 O
+    -> (X * I) >8 (X * O)
+X |>8 C = {!!}
+
+module _ {I J : Set} where
+
+-- Using the above three operators, show how to combine ways of cutting
+--   C in the I-dimension
+--   D in the J-dimension
+-- to give the two-dimensional cutting which is
+--   either like C in the I-dimension, leaving the J-dimension alone
+--       or like D in the J-dimension, leaving the I-dimension alone
+
+  _|+|_ : I >8 I -> J >8 J -> (I * J) >8 (I * J)
+  C |+| D = {!!}
+
+-- Congratulations! If you've made it this far, you can now talk about how
+-- to *tile* rectangular spaces, like your screen.
+
+Tiling : (Nat * Nat -> Set) -> (Nat * Nat -> Set)
+Tiling X = (Length |+| Length) -Tree X
+
+-- And that's how we'll be working with ideas of "application display" in
+-- Exercise Three...
