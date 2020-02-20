@@ -1,3 +1,4 @@
+{-# OPTIONS --allow-unsolved-metas #-}
 module CS410-19.Exercise.One where
 
 open import Lib.Equality
