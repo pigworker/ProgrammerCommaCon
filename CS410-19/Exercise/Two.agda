@@ -99,4 +99,112 @@ from->8- IJ JK (c , ijps) = {!!}
 -- proof task.
 
 
+------------------------------------------------------------------------------
+-- Trees made by repeated cutting
+------------------------------------------------------------------------------
+
+module _
+  {I : Set}            -- shapes of things
+  (C : I >8 I)         -- a way of cutting, where insides are like outsides
+  (Leaf : I -> Set)    -- leaves of a given shape
+  where
+
+  data _-Tree_ (i : I) : Set where  -- trees have shapes in I
+
+      -- if you have a leaf the right shape, it can be a tree
+    leaf  : Leaf i -> _-Tree_ i
+
+      -- otherwise cut into pieces where you plug in subtrees
+    [8<_] : (C -Frag _-Tree_) i -> _-Tree_ i
+
+
+------------------------------------------------------------------------------
+-- 2.2 Folding over Trees
+------------------------------------------------------------------------------
+
+module _ {I : Set}{C : I >8 I} where
+
+-- Define fold for trees. I.e., show that you can make a V from a tree if
+--   (i)  you can make a V from a leaf
+--   (ii) you can make a V from a tree whose subtrees have already been
+--          made into Vs
+-- To appease the termination checker, you need to define this mutually with
+-- allFold (which is morally the same as all (fold ...))
+
+  fold : forall {L V}
+      -> [ L -:> V ]
+      -> [ C -Frag V -:> V ]   -- an "algebra"
+      -> [ C -Tree L -:> V ]
+  allFold : forall {L V}
+      -> [ L -:> V ]
+      -> [ C -Frag V -:> V ]   -- an "algebra"
+      -> [ All (C -Tree L) -:> All V ]
+  fold leaf' algebra t = {!!}
+  allFold leaf' algebra ts = {!!}
+
+-- Prove that if you plug the constructors for trees into fold, you get
+-- the identity.
+
+  fold-rebuild : forall {L}{i}(t : (C -Tree L) i) ->
+    fold leaf [8<_] t ~ t
+  allFold-rebuild : forall {L}{is}(ts : All (C -Tree L) is) ->
+    allFold leaf [8<_] ts ~ ts
+  fold-rebuild t = {!!}
+  allFold-rebuild ts = {!!}
+
+-- Prove the following fusion law, which holds when the first fold acts
+-- only at leaves.
+
+  module _ {L U V}
+    (l : [ L -:> C -Tree U ])
+    (f : [ U -:> V ])
+    (g : [ C -Frag V -:> V ])
+    where
+
+    fold-fusion : forall 
+      {i}(t : (C -Tree L) i) ->
+      fold f g (fold l [8<_] t) ~ fold (l - fold f g) g t
+    allFold-fusion : forall 
+      {is}(ts : All (C -Tree L) is) ->
+      allFold f g (allFold l [8<_] ts) ~ allFold (l - fold f g) g ts
+    fold-fusion t = {!!}
+    allFold-fusion ts = {!!}
+
+
+------------------------------------------------------------------------------
+-- 2.3 Flattening Trees
+------------------------------------------------------------------------------
+
+-- By way of an example of folding, let us flatten.
+
+-- Here are lists indexed by length (a.k.a. "vectors").
+
+data _-Vec_ (X : Set) : Nat -> Set where
+  [] : X -Vec 0
+  _,-_ : forall {n} -> X -> X -Vec n -> X -Vec su n
+
+-- Define their concatenation.
+
+_+V_ : forall {X m n} -> X -Vec m -> X -Vec n -> X -Vec (m +N n)
+xs +V ys = ?
+
+-- We may define singletons of Xs (to put at the leaves of trees).
+
+OneOf : Set -> Nat -> Set
+OneOf X 1 = X
+OneOf X _ = Zero
+
+-- A (Length -Tree OneOf X) n is a binary tree with n leaves, each of
+-- which stores *one* X. Show how to flatten such a tree to a vector,
+-- using fold. Hint: you may need to define some helpers or learn to
+-- use fancy lambdas
+-- \ { pattern1 -> expression1 ; .. ; patternk -> expressionk }
+
+flatten : forall {X} ->
+          [ Length -Tree OneOf X -:> (X -Vec_) ]
+flatten {X} = fold {V = (X -Vec_)}
+  ?
+  ?
+
+
 -- TO BE CONTINUED...
