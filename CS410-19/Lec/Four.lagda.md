@@ -154,7 +154,7 @@ of `with`.
     
     _=Cat>_ : Setoid l
     Carrier _=Cat>_ = _-Cat>_ 
-    Eq _=Cat>_ F G =
+    Eq _=Cat>_ F G =  -- is this equivalence too tight?
       ((X : Object Source) -> Map F X ~ Map G X) >< \ Q ->
       {S T : Object Source}(f : Carrier (Arrow Source S T)) -> 
         Eq (Arrow Target (Map G S) (Map G T)) (map F f :[ Carrier $~ (Arrow Target $~ Q S ~$~ Q T) >) (map G f)
@@ -189,6 +189,8 @@ module _ where
   map-identity (Id {l}{C}) {T} = reflEq (Arrow C T T)  
   map-compose (Id {l}{C}) {R}{S}{T} f g = reflEq (Arrow C R T)
 
+  -- composition in the category of categories is -Cat-
+  -- functors, not categories are being composed
   _-Cat-_ : forall {l}{C D E : SomeCat l} -> C -Cat> D -> D -Cat> E -> C -Cat> E
   Map (F -Cat- G) = Map F - Map G
   map (F -Cat- G) = map F - map G
@@ -197,10 +199,10 @@ module _ where
     transEq (Arrow E ((Map F - Map G) T) ((Map F - Map G) T))
       (map-respect G (map-identity F))
       (map-identity G)
-  map-compose (_-Cat-_ {l} {C} {D} {E} F G) {R} {S} {T} f g =
+  map-compose (_-Cat-_ {l} {C} {D} {E} F G) {R} {S} {T} f g = 
     transEq (Arrow E (Map G (Map F R)) (Map G (Map F T)))
-       (map-respect G (map-compose F f g))
-       (map-compose G (map F f) (map F g))
+      (map-respect G (map-compose F f g))
+      (map-compose G (map F f) (map F g))
 ```
 
 ### Category of Categories
@@ -217,11 +219,9 @@ module _ where
   CAT : forall l -> Cat {lsuc l}{SomeCat l} \ C D -> UpS (C =Cat> D)
   identity (CAT l) = up Id
   compose (CAT l) (up F) (up G) = up (F -Cat- G)
-  fst (down (compose-respect (CAT l) {f0 = up F0} {up F1} (up (F01 , f01)) {up G0} {up G1} (up (G01 , g01)))) X
-    with Map F0 X | Map F1 X | F01 X
-  ... | F0X | F0X | r~
-    with Map G0 F0X | Map G1 F0X | G01 F0X
-  ... | G0F0X | G0F0X | r~ = r~
+  fst (down (compose-respect (CAT l) {f0 = F0} {F1} (up (F01 , f01)) {G0} {G1} (up (G01 , g01)))) X
+    rewrite F01 X =
+    G01 _
   snd (down (compose-respect (CAT l) {T = E}{f0 = up F0} {up F1} (up (F01 , f01)) {up G0} {up G1} (up (G01 , g01)))) {S}{T} f
     with Map F0 S | F01 S | map F0 f | f01 f
   ... | F0S | r~ | F0f | qf
@@ -245,6 +245,27 @@ module _ where
     up ((\ X -> r~)
     , \ {S}{T} f ->
       Setoid.reflEq (Arrow E (Map H (Map G (Map F S))) (Map H (Map G (Map F T)))))
+
+{-
+  fst (down (compose-respect (CAT l) {f0 = up F0} {up F1} (up (F01 , f01)) {up G0} {up G1} (up (G01 , g01)))) X
+    with Map F0 X | Map F1 X | F01 X
+  ... | F0X | F0X | r~
+    with Map G0 F0X | Map G1 F0X | G01 F0X
+  ... | G0F0X | G0F0X | r~ = r~
+  snd (down (compose-respect (CAT l) {T = E}{f0 = up F0} {up F1} (up (F01 , f01)) {up G0} {up G1} (up (G01 , g01)))) {S}{T} f
+    with Map F0 S | F01 S | map F0 f | f01 f
+  ... | F0S | r~ | F0f | qf
+    with Map F0 T | F01 T
+  ... | F0T | r~
+    with Map G0 (Map F1 S) | G01 (Map F1 S) | map G0 F0f | g01 F0f
+  ... | G0FS | r~ | GF0f | qg
+    with Map G0 (Map F1 T) | G01 (Map F1 T)
+  ... | G0FT | r~ = 
+    let open Setoid (Arrow E (Map G1 (Map F1 S)) (Map G1 (Map F1 T))) in
+    GF0f =[ qg >=
+    map G1 F0f =[ map-respect G1 qf >=
+    map G1 (map F1 f) [DONE]
+-}
 ```
 
 
