@@ -186,7 +186,7 @@ data _-Vec_ (X : Set) : Nat -> Set where
 -- Define their concatenation.
 
 _+V_ : forall {X m n} -> X -Vec m -> X -Vec n -> X -Vec (m +N n)
-xs +V ys = ?
+xs +V ys = {!!}
 
 -- We may define singletons of Xs (to put at the leaves of trees).
 
@@ -203,8 +203,180 @@ OneOf X _ = Zero
 flatten : forall {X} ->
           [ Length -Tree OneOf X -:> (X -Vec_) ]
 flatten {X} = fold {V = (X -Vec_)}
-  ?
-  ?
+  {!!}
+  {!!}
+
+
+------------------------------------------------------------------------------
+-- 2.4 Binary Search Trees, Revisited
+------------------------------------------------------------------------------
+
+-- Remember this business from Lecture One?
+
+module BST
+  (Key : Set)
+  (Le : Key -> Key -> Set)
+  (owoto : (x y : Key) -> Le x y + Le y x)
+  where
+
+  data Bound : Set where
+    -inf : Bound
+    key  : Key -> Bound
+    +inf : Bound
+
+  LeB : Bound -> Bound -> Set
+  LeB -inf    u       = One
+  LeB (key x) (key y) = Le x y
+  LeB l       +inf    = One
+  LeB _       _       = Zero
+
+  {-
+  data Tree (l u : Bound) : Set where
+  
+    leaf : LeB l u -> Tree l u
+    
+    node : (k : Key) -> Tree l (key k) -> Tree (key k) u
+        -> Tree l u
+  -}
+
+-- We can see these trees as a special case of our cutting-up constructions.
+
+  BSTCut : (Bound * Bound) >8 (Bound * Bound)
+  Cut    (BSTCut (l , u)) = Key
+  pieces (BSTCut (l , u)) k = (l , key k) ,- (key k , u) ,- []
+
+  LeB' : Bound * Bound -> Set
+  LeB' (l , u) = LeB l u
+
+  BST : Bound * Bound -> Set
+  BST = BSTCut -Tree LeB'
+
+-- Check that you can still write insert.
+
+  insert : [ (BSTCut -Frag LeB') -:> BST -:> BST ]
+  insert (k , lk ,- ku ,- []) t = {!!}
+
+
+------------------------------------------------------------------------------
+-- 2.5 Two-Three Trees
+------------------------------------------------------------------------------
+
+-- [2-3 trees](https://en.wikipedia.org/wiki/2%E2%80%933_tree) are a variant
+-- on binary search trees which are well enough *balanced* to ensure
+-- logarithmic access times. Crucially
+--
+--  * they have uniform height, i.e. all paths from the root to a leaf have
+--    the same length
+--  * each node has either one key  and   two subtrees
+--                      or two keys and three subtrees
+
+-- Your mission is to build 2-3 trees as an instance of -Tree by explaining
+-- the meaningful ways to cut up intervals. The shape of a 2-3 tree is given
+-- by a        Nat  -- the height
+--         * Bound  -- the lower bound
+--         * Bound  -- the upper bound
+
+-- Please complete this datatype:
+
+  data Cut23 : Nat * Bound * Bound -> Set where
+    -- give a constructor for 2-nodes
+    -- give a constructor for 3-nodes
+
+-- With that done, explain the subtree structure:
+
+  TwoThree : (Nat * Bound * Bound) >8 (Nat * Bound * Bound)
+  Cut (TwoThree hlu) = Cut23 hlu
+  pieces (TwoThree hlu) c = {!!}
+
+-- Meanwhile, leaves must have height exactly 0, and should, as before,
+-- contain ordering evidence.
+
+  Leafy : Nat * Bound * Bound -> Set
+  Leafy (0 , l , u) = LeB l u
+  Leafy _           = Zero
+
+-- We obtain 2-3 trees, enforcing both order and balance.
+
+  Tree23 : Nat * Bound * Bound -> Set
+  Tree23 = TwoThree -Tree Leafy
+
+-- Now, let's figure out how to do insertion with *rebalancing*. When you
+-- insert into a tree of a given height, most of the time, there's enough
+-- slack in the tree to return a tree of the same height. E.g., if you
+-- insert into a 2-node of height 1, you can give back a 3-node of height 1.
+-- But sometimes, the original tree is *full*, so you have no option but
+-- to increase the height. E.g., if you insert into a 3-node of height 1,
+-- you have no choice but to give back a tree of height 2.
+
+-- We can explain these possibilities as a way of cutting.
+
+-- You will need to add information to the following datatype, but wait
+-- until you see what you need.
+
+  data CutInsert (nlu : Nat * Bound * Bound) : Set where
+    asSmall : CutInsert nlu
+    tooTall : {- what goes here? -> -} CutInsert nlu
+
+-- Likewise, explain what pieces you get when we're too tall.
+
+  Insert : (Nat * Bound * Bound) >8 (Nat * Bound * Bound)
+  Cut (Insert nlu) = CutInsert nlu
+  pieces (Insert nlu) asSmall                      = nlu ,- []
+  pieces (Insert nlu) (tooTall {- what's here?-})  = {!!}
+
+-- What you need the above to be should arise from trying to implement
+-- the following.
+
+  insert23 : [ (snd - BSTCut -Frag LeB') -:> Tree23 -:> Insert -Frag Tree23 ]
+  insert23 (k , lk ,- ku ,- []) t = {!!}
+
+-- This gives us the guts of an n * log n complexity sorting algorithm,
+-- provided you can flatten efficiently.
+
+-- First, wrap 2-3 trees as trees of some height between the widest bounds.
+
+  BalanceTree : Set
+  BalanceTree = Nat >< \ height -> Tree23 (height , -inf , +inf)
+
+-- Now, you wrap insertion.
+
+  insertBal : Key -> BalanceTree -> BalanceTree
+  insertBal k (h , t) = {!!}
+
+-- So that we have makeTree as before:
+
+  makeBalTree : List Key -> BalanceTree
+  makeBalTree []        = 0 , leaf <>
+  makeBalTree (k ,- ks) = insertBal k (makeBalTree ks)
+
+-- In lecture 1, we defined ordered lists as follows
+  {-
+  data OList (l u : Bound) : Set where
+  
+    nil  : LeB l u -> OList l u
+    
+    cons : (k : Key) -> LeB l (key k) -> OList (key k) u
+        -> OList l u
+  -}
+
+-- Refactor that definition in terms of -Tree.
+
+  OList : Bound * Bound -> Set
+  OList = {!!} -Tree LeB'
+
+-- Use fold to define flatten.
+
+  flattenBalTree : BalanceTree -> OList (-inf , +inf)
+  flattenBalTree = {!!}
+
+-- (There is a bonus for avoiding quadratic complexity by eliminating
+-- left-nested concatenations.)
+
+-- We should now have, as before:
+
+  sort : List Key -> OList (-inf , +inf)
+  sort = makeBalTree - flattenBalTree
+
 
 
 -- TO BE CONTINUED...
