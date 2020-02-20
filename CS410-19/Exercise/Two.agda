@@ -1,5 +1,7 @@
 module CS410-19.Exercise.Two where
 
+open import Agda.Primitive
+
 open import Lib.Zero
 open import Lib.One
 open import Lib.Two
@@ -8,6 +10,7 @@ open import Lib.Equality
 open import Lib.Sigma
 open import Lib.Nat
 open import Lib.Sum
+open import Cat.Setoid
 open import Cat.Cat
 
 open import CS410-19.Exercise.One
@@ -463,7 +466,64 @@ module HUTTON where
   eval : forall {Var}
       -> [      Var -:> Value ]  -- you know the values of the variables,
       -> [ Expr Var -:> Value ]  -- so what is the value of an expression?
-  eval gamma = fold gamma ?
+  eval gamma = fold gamma {!!}
+
+
+------------------------------------------------------------------------------
+-- 2.7 Monadic Structure
+------------------------------------------------------------------------------
+
+-- A "shape-preserving" function from S to C-trees of Ts is called a "Kleisli
+-- arrow.
+
+_-K_>_ : forall {I} -> (I -> Set) -> I >8 I -> (I -> Set) -> Set
+S -K C > T = [ S -:> C -Tree T ]
+
+module _ where
+
+  open Setoid
+  open Cat
+
+-- Construct the Setoid of Kleisli arrows with pointwise equality.
+
+  _=K_>_ : forall {I} -> (I -> Set) -> I >8 I -> (I -> Set) -> Setoid lzero
+  Carrier (S =K C > T) = S -K C > T
+  Eq      (S =K C > T) f g = forall {i}(s : S i) -> f s ~ g s
+  reflEq  (S =K C > T) = {!!}
+  symEq   (S =K C > T) = {!!}
+  transEq (S =K C > T) = {!!}
+
+-- Show that Kleisli arrows form a category.
+
+-- Actually, don't do that yet, do this...
+
+  module _ {I : Set}{C : I >8 I} where
+
+    _=<<_ : forall {S T}
+         ->           S  -K C > T    -- how to replace leaves by trees
+         ->  (C -Tree S) -K C > T    -- doing that to whole trees
+
+    k =<< t = fold {!!} {!!} t
+
+-- The above is the key to giving the composition that you should use to
+-- build the category.
+
+    _-K-_ : forall {R S T}
+        ->  R  -K C >  S
+        ->  S  -K C >  T
+        ->  R  -K C >  T
+    (j -K- k) t = k =<< j t
+
+-- Now build the Kleisli category.
+
+  KLEISLI : forall {I}(C : I >8 I) ->
+            Cat \ S T -> UpS (S =K C > T)
+  identity (KLEISLI C) = {!!}
+  compose (KLEISLI C) (up f) (up g) = up (f -K- g)
+  compose-respect (KLEISLI C) = {!!}
+  compose-identity-arrow (KLEISLI C) = {!!}
+  compose-arrow-identity (KLEISLI C) = {!!}
+  compose-compose (KLEISLI C) = {!!}
 
 
 -- TO BE CONTINUED...
