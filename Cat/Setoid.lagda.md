@@ -26,6 +26,14 @@ record Setoid l : Set (lsuc l) where
     reflEq  : {x : Carrier} -> Eq x x
     symEq   : {x y : Carrier} -> Eq x y -> Eq y x
     transEq : {x y z : Carrier} -> Eq x y -> Eq y z -> Eq x z
+  _[DONE] : forall x -> Eq x x
+  x [DONE] = reflEq
+  _=[_>=_  : forall x {y z} -> Eq x y -> Eq y z -> Eq x z
+  x =[ q0 >= q1 = transEq q0 q1
+  _=<_]=_  : forall x {y z} -> Eq y x -> Eq y z -> Eq x z
+  x =< q0 ]= q1 = transEq (symEq q0) q1
+  infixr 30 _=[_>=_ _=<_]=_
+  infixr 31 _[DONE]
 ```
 
 ```agda
@@ -44,7 +52,8 @@ module _ where
   _-Setoid>_ : forall {l} -> Setoid l -> Setoid l -> Setoid l
   Carrier (S -Setoid> T) = (Carrier S -> Carrier T) >< \ f ->
                            forall {s s'} -> Eq S s s' -> Eq T (f s) (f s') 
-  Eq (S -Setoid> T) (f , _) (f' , _) = forall {s s'} -> Eq S s s' -> Eq T (f s) (f' s') 
+  Eq (S -Setoid> T) (f , _) (f' , _) =
+    forall {s s'} -> Eq S s s' -> Eq T (f s) (f' s') 
   reflEq  (S -Setoid> T) {f , ok} = ok
   symEq   (S -Setoid> T) ff' ss'  = symEq T (ff' (symEq S ss'))
   transEq (S -Setoid> T) fg gh xz = transEq T (fg (reflEq S)) (gh xz)
