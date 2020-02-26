@@ -78,7 +78,7 @@ _->8-_ : forall {I J K} -> I >8 J -> J >8 K -> I >8 K
 
 -- Here, a composite cut should explain how to cut a K into Js, then each J
 -- into Is. The pieces you end up with should be all the Is from all the Js.
--- Hints: (i) Cut IJ : J -> Set; (ii) you may need a helper function to
+-- Hints: (i) IJ - Cut : J -> Set; (ii) you may need a helper function to
 -- assemble the pieces.
 
 -- Check that -Frag makes them behave like identity and composition, up to
