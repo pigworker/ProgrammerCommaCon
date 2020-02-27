@@ -4,8 +4,11 @@ Structuring Interaction for Beginners
 ```agda
 module CS410-19.Lec.Five where
 
-open import Lib.Pi
+open import Lib.Zero
 open import Lib.One
+open import Lib.Two
+open import Lib.Sum
+open import Lib.Pi
 open import Lib.Sigma
 ```
 
@@ -128,5 +131,86 @@ strategies arise this way!
 xlate' : forall {QA Google}
       -> (forall {X} -> [[ QA ]]I X -> [[ Google ]]I X)
       -> QA -Interaction> Google
-xlate' f q = {!!}
+xlate' f q = f (q , id)
+```
+
+```agda
+kI : Set -> Interaction
+Question (kI R) = R
+Answer   (kI R) r = Zero
+```
+
+```agda
+idI : Interaction
+Question idI = One
+Answer   idI <> = One
+
+to-idI : forall {X} -> X -> [[ idI ]]I X
+to-idI x = <> , (\ _ -> x)
+
+from-idI : forall {X} -> [[ idI ]]I X -> X
+from-idI (<> , k) = k <>
+```
+
+```agda
+op : Interaction -> Interaction
+op (Q <? A) = ((q : Q) -> A q) <? (\ _ -> Q)
+```
+
+```agda
+_+I_ : Interaction -> Interaction -> Interaction
+Question ((Q0 <? A0) +I (Q1 <? A1)) = Q0 + Q1
+Answer ((Q0 <? A0) +I (Q1 <? A1)) (inl q0) = A0 q0
+Answer ((Q0 <? A0) +I (Q1 <? A1)) (inr q1) = A1 q1
+
+_&I_ : Interaction -> Interaction -> Interaction
+Question ((Q0 <? A0) &I (Q1 <? A1)) = Q0 * Q1
+Answer ((Q0 <? A0) &I (Q1 <? A1)) (q0 , q1) = A0 q0 + A1 q1
+
+-- choice
+choice : forall {QA0 QA1 X Y}
+      -> [[ QA0    +I    QA1 ]]I X
+      -> [[ op QA0 &I op QA1 ]]I Y
+      -> X * Y
+choice (inl q0 , k) ((f0 , f1) , s1) = k (f0 q0) , s1 (inl q0)
+choice (inr q1 , k) ((f0 , f1) , s1) = k (f1 q1) , s1 (inr q1)
+```
+
+```agda
+record Server (QA : Interaction)(D : Set) : Set where
+  coinductive
+  field
+    display : D
+    react   : [[ op QA ]]I (Server QA D)
+open Server public
+```
+
+```agda
+data Bwd (D : Set) : Set where
+  []   : Bwd D
+  _-,_ : Bwd D -> D -> Bwd D
+  
+chat : forall {QA X D}
+    -> Process QA X       -- P asks the questions
+    -> Bwd D              -- S's ancient history of displays
+    -> Server QA D        -- S displays and reacts
+    -> X                  -- P's output
+     * Bwd D              -- S's recent history of displays
+     * Server QA D        -- S, still alive
+
+chat (return x) dz s = x , dz , s
+chat (ask (q , k)) dz s with react s
+... | answer , evolve = chat (k (answer q)) (dz -, display s) (evolve q)
+```
+
+```agda
+-- _-I-_ : Interaction -> Interaction -> Interaction
+
+-- to-coI
+
+-- from-coI 
+```
+
+```agda
+-- ScriptI : Interaction -> Interaction
 ```
