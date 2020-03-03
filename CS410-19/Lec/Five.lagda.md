@@ -204,13 +204,34 @@ chat (ask (q , k)) dz s with react s
 ```
 
 ```agda
--- _-I-_ : Interaction -> Interaction -> Interaction
+_-I-_ : Interaction -> Interaction -> Interaction
+Question (QA0 -I- (Q1 <? A1)) = [[ QA0 ]]I Q1
+Answer   (QA0 -I- (Q1 <? A1)) (q , k)
+  = Answer QA0 q >< \ a ->
+    A1 (k a)
 
--- to-coI
+to-coI : forall {QA0 QA1 X}
+      -> [[ QA0 ]]I ([[ QA1 ]]I X)
+      -> [[ QA0 -I- QA1 ]]I X
+fst (fst (to-coI (q0 , k0))) = q0
+snd (fst (to-coI (q0 , k0))) a0 with k0 a0
+... | q1 , k1 = q1
+snd (to-coI (q0 , k0)) (a0 , a1) with k0 a0
+... | q1 , k1 = k1 a1
 
--- from-coI 
+from-coI : forall {QA0 QA1 X}
+      -> [[ QA0 -I- QA1 ]]I X
+      -> [[ QA0 ]]I ([[ QA1 ]]I X)
+fst (from-coI ((q0 , k0) , k)) = q0
+fst (snd (from-coI ((q0 , k0) , k)) a0) = k0 a0
+snd (snd (from-coI ((q0 , k0) , k)) a0) a1 = k (a0 , a1)
 ```
 
 ```agda
--- ScriptI : Interaction -> Interaction
+ScriptI : Interaction -> Interaction
+Question (ScriptI QA) = Process QA One
+Answer (ScriptI QA) (return <>) = One
+Answer (ScriptI QA) (ask (q , k)) =
+  Answer QA q >< \ a ->
+  Answer (ScriptI QA) (k a)
 ```
