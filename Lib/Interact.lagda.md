@@ -2,7 +2,7 @@ Contingent Interaction for a Turbulent World
 ============================================
 
 ```agda
-module CS410-19.Lec.Six where
+module Lib.Interact where
 
 open import Lib.Zero
 open import Lib.One
@@ -15,6 +15,8 @@ open import Agda.Builtin.Nat renaming (_*_ to _*N_)
 --open import Lib.Nat
 open import Lib.Star
 ```
+
+
 
 It's all very well enforcing the property that the answer is appropriate
 to the question, but there's more to building interactive systems than
@@ -43,102 +45,56 @@ record _?>_ (I O : Set) : Set1 where
   field
     Question  : O -> Set
     Answer    : (o : O) -> Question o -> Set
-    @0 status : (o : O)(q : Question o) ->
+    status    : (o : O)(q : Question o) ->
                 Answer o q -> I
-  --^^ WTF?
+  --^^ wot no WTF?
 
-  @0 _-Chat_ : (I -> Set) -> (O -> Set)
+  _-Chat_ : (I -> Set) -> (O -> Set)
   _-Chat_ G o = Question o >< \ q ->
                 (a : Answer o q) ->
                 G (status o q a)
 open _?>_ public                
 ```
 
-Firstly, to answer the WTF, `@0` before a variable binding means
-"known to the typechecker but not at runtime". The Indian invention of
-zero, as passed on to us by Arabic mathematicians, was a significant
-liberation. I remembered that lesson while staring into an empty pint
-in 2014: it's useful to be able to talk about having none of something.
-In 2015, I wrote a paper about that called "I got plenty o' nuttin'"
-which seems have caused quite a stir. And in particular, it provoked
-Andreas Abel to add zero-quantity variables to Agda. Here, we use them
-to ensure that the "status" is a purely *static* model of significant
-aspects of the interactive system, rather than an actual run-time data
-structure.
+(In the future, we'll be able to ensure that the status is purely
+*static* information, using the `@0` modality. `@0` before a variable
+binding means "known to the typechecker but not at runtime". The
+Indian invention of zero, as passed on to us by Arabic mathematicians,
+was a significant liberation. I remembered that lesson while staring
+into an empty pint in 2014: it's useful to be able to talk about
+having none of something.  In 2015, I wrote a paper about that called
+"I got plenty o' nuttin'" which seems have caused quite a stir. And in
+particular, it provoked Andreas Abel to add zero-quantity variables to
+Agda. Here, we could use them to ensure that the "status" is a purely
+*static* model of significant aspects of the interactive system,
+rather than an actual run-time data structure. However, in the current
+version, the compiler does not handle them correctly and generated
+code has scope errors. Oops!)
 
-We use status information only to index sets of data which *do* exist
-at runtime, and we exploit propositions-as-types to conflate the
-logical notions of "precondition" and "postcondition" with the
-programming notions of "input" and "output". Given any such interaction
-structure `F` and a goal `G : I -> Set` for our status afterwards, we
-obtain `F -Chat G : O -> Set` which is the property that our goal is
-*achievable* by *one* interaction. That property is witnessed by the
-*strategy* for achieving the goal, consisting of a choice of question
-and the means to continue to a `G` given the answer. `G` must hold
-for whatever the final `status` may be, and that is not necessarily
-under the entire control of either party.
+The plan is to use status information only to index sets of data which
+*do* exist at runtime, and we exploit propositions-as-types to
+conflate the logical notions of "precondition" and "postcondition"
+with the programming notions of "input" and "output". Given any such
+interaction structure `F` and a goal `G : I -> Set` for our status
+afterwards, we obtain `F -Chat G : O -> Set` which is the property
+that our goal is *achievable* by *one* interaction. That property is
+witnessed by the *strategy* for achieving the goal, consisting of a
+choice of question and the means to continue to a `G` given the
+answer. `G` must hold for whatever the final `status` may be, and that
+is not necessarily under the entire control of either party.
 
-To work with the `@0` modality, we shall need the appropriate notions
-of necessity and possibility.
-
-```agda
-[0_] : forall {I : Set}(P : I -> Set) -> Set
-[0 P ] = {@0 i : _} -> P i
-
-record _0><_ (I : Set)(P : I -> Set) : Set where
-  constructor _,_
-  field
-    @0 secret : I
-    possible  : P secret
-open _0><_ public
-```
-
-We're working in categories where the objects are indexed sets in some `X -> Set`
-and the arrows are index-respecting maps in `[0 P -:> Q ]`, where the index is
-not known at runtime. That is, *all* we know about the initial status is whatever
-`P` tells us.
+We're working in categories where the objects are indexed sets in some
+`X -> Set` and the arrows are index-respecting maps in `[ P -:> Q
+]`. That is, *all* we know about the initial status is whatever `P`
+tells us.
 
 ```agda
 _-chat_ : forall {I O : Set}(F : I ?> O)
           {P Q : I -> Set} ->
-          [0 P -:> Q ] ->
-          [0 F -Chat P -:> F -Chat Q ]
+          [ P -:> Q ] ->
+          [ F -Chat P -:> F -Chat Q ]
 (F -chat f) (q , k) = q , (\ a -> f (k a))
 ```
-
-The state-indexed State Example
--------------------------------
-
-Let us have an example of this status-indexing in practice. We're used to the
-state monad, with a type `S` for the state and operations `get` and `put`. But
-how do we know that `get` gets and `put` puts? If we use the state as the
-static status (there's a tongue-twister for you), we can enforce the properties
-that
-
-1. The `get` operation tells us the truth about the state and does not change the state.
-2. The `put` operation really changes the state to that which is requested.
-
-```agda
-module _ (S : Set) where
-
-  data StateQ : Set where
-    get : StateQ
-    put : S -> StateQ
-
-  State : S ?> S
-  Question State _ = StateQ
-  Answer State s get        = S >< \ x -> x ~ s
-  Answer State s (put s')   = One
-  status State s get a      = s
-  status State s (put s') a = s'
-```
-
-Note that if you don't do this `@0` business for the status, you end up in
-the ludicrous situation that you need to know the value of the state at
-run-time before you're even allowed to issue a `get` question, thus somewhat
-undermining the point of the thing. Here, we're saying "Whatever the
-typechecker knows the state is, that's what you `get`.", i.e., that the
-secret is now out!
 
 
 Clients, a.k.a. The Free Monad on an Interaction Structure
@@ -168,19 +124,19 @@ leaves of an existing client strategy.
 ```agda
 module _ {I : Set}{F : I ?> I} where
 
-  _-eh? : {@0 i : I}(q : Question F i) ->
+  _-eh? : {i : I}(q : Question F i) ->
     Client F (\ j -> Answer F i q >< \ a -> status F i q a ~ j) i
   q -eh? = ask (q , \ a -> return (a , r~))
 
-  _=<<_ : forall {@0 P Q : I -> Set} ->
-    [0 P -:> Client F Q ] ->
-    [0 Client F P -:> Client F Q ]
+  _=<<_ : forall {P Q : I -> Set} ->
+    [ P -:> Client F Q ] ->
+    [ Client F P -:> Client F Q ]
   k =<< return p = k p
   k =<< ask (q , j) = ask (q , \ a -> k =<< j a)
 
-  _>>=_ : forall {@0 P Q : I -> Set} ->
-    {@0 i : I} -> Client F P i ->
-    [0 P -:> Client F Q ] ->
+  _>>=_ : forall {P Q : I -> Set} ->
+    {i : I} -> Client F P i ->
+    [ P -:> Client F Q ] ->
     Client F Q i
   c >>= k = k =<< c
 
@@ -189,13 +145,14 @@ module _ {I : Set}{F : I ?> I} where
 ```
 
 At some point, we should define equivalence of strategies and prove that
-the `[0 P -:> Client F Q ]` give us the arrows of a category (the "Kleisli
+the `[ P -:> Client F Q ]` give us the arrows of a category (the "Kleisli
 Category"). They are programs which achieve postcondition `Q` given
 precondition `P`. We end up with something a lot like Sir Tony Hoare's
 logic for reasoning about imperative programming, except that we're using
 it as our type system. The identity is Tony's `skip` operator (which does
 nothing), and composition behaves like Tony's `;` where the postcondition
 of the first component becomes the precondition for the second.
+
 
 I should say something about why we have a *monad* and what makes it
 *free*.  Note that it's not a monad in the category of types and
@@ -237,13 +194,13 @@ module _ {I : Set}
          (H : I -> Set)  -- happiness: think Mickey Mouse in DisneyWorld
   where
 
-  record Server (@0 i : I) : Set where
+  record Server (i : I) : Set where
     coinductive
     field
       display : H i                      -- we can always display happiness
       react   : (q : Question F i)       -- and given a question...
              -> Answer F i q >< \ a
-             -> Server (status F i q a) -- what answer we give
+             -> Server (status F i q a)  -- what answer we give
 
   open Server public
 ```  
@@ -251,7 +208,7 @@ module _ {I : Set}
 Now, we can log the behaviour of a server, with entries like the following:
 
 ```agda
-  record LogEntry (@0 i j : I) : Set         -- how an i-to-j step happened
+  record LogEntry (i j : I) : Set         -- how an i-to-j step happened
     where
     constructor log
     field
@@ -268,38 +225,16 @@ up properly.
 ```agda
 module _ {I : Set}{F : I ?> I}{G H : I -> Set} where
 
-  interact : {@0 i j : I}              -- we started at i, we're j now
+  interact : {i j : I}                 -- we started at i, we're j now
           -> Rats (LogEntry F H) i j   -- how we got to j
           -> Client F G j              -- the client wants G
           -> Server F H j              -- the server is happy like H
-          -> I 0>< \ k ->                -- we will reach k
+          -> I >< \ k ->                 -- we will reach k
              Rats (LogEntry F H) i k     -- (and remember our history), where
            * G k                         -- the client will achieve its goal
            * Server F H k                -- and the server will still be happy
   interact lz (return g) s = _ , lz  , g , s
   interact lz (ask (q , k)) s with display s | react s q
   ... | h | a , s' = interact (lz -, log (display s) q a r~) (k a) s'
-```
-
-
-
-(Conor, remember to shift the following later, before doing the Server
-stuff.)
-
-```agda
-makeItThree : [0 Client (State Nat) (3 ~_) ]
-makeItThree =
-  get -eh? >>= \
-  { ((3 , r~ {- answer was status was 3 -}) , r~ {- status is still 3 -}) ->
-      return r~
-  ; s ->
-      put 3 -eh? >>= \
-      { (<> , r~ {- the status really is 3 now -}) -> return r~
-      }
-  }
-
-  {- ask (get , \ { (3 , r~) -> return r~
-                           ; (s , r~) -> ask (put 3 , \ _ -> return r~)
-                           }) -}
 ```
 

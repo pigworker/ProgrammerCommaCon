@@ -9,6 +9,8 @@ type with one value.
 
 ```agda
 record One : Set where constructor <>
+
+{-# COMPILE GHC One = data () (()) #-}
 ```
 
 It is declared as a `record`, which means it is defined by its
