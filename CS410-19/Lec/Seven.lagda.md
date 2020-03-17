@@ -46,10 +46,10 @@ leafOrNode = `one `+ (`X `* `X)
 ```agda
 [[_]]1 : (P : Poly) ->
   {S T : Set} -> (S -> T) -> [[ P ]]0 S -> [[ P ]]0 T
-[[ `X ]]1 f s = f s
-[[ `one ]]1 f <> = <>
-[[ P `+ Q ]]1 f (inl sp) = inl ([[ P ]]1 f sp)
-[[ P `+ Q ]]1 f (inr sq) = inr ([[ Q ]]1 f sq)
+[[ `X     ]]1 f s         = f s
+[[ `one   ]]1 f <>        = <>
+[[ P `+ Q ]]1 f (inl sp)  = inl ([[ P ]]1 f sp)
+[[ P `+ Q ]]1 f (inr sq)  = inr ([[ Q ]]1 f sq)
 [[ P `* Q ]]1 f (sp , sq) = [[ P ]]1 f sp , [[ Q ]]1 f sq
 ```
 
@@ -90,7 +90,7 @@ latter calls the former back on arrival at some recursive data.
 
 ```agda
 polyEq? R (con xp) (con yp) with polyEqHelp? R xp yp
-polyEq? R (con xp) (con yp) | inl naw = inl \ { r~ -> naw r~ }
+polyEq? R (con xp) (con yp)  | inl naw = inl \ { r~ -> naw r~ }
 polyEq? R (con xp) (con .xp) | inr r~ = inr r~
 
 polyEqHelp? `X {R} x y = polyEq? R x y
@@ -119,4 +119,147 @@ polyEqHelp? (P `* Q) (xp , xq) (yp , yq)
   | inr c | inl naw = inl \ { r~ -> naw r~ }
 polyEqHelp? (P `* Q) (xp , xq) (.xp , .xq)
   | inr r~ | inr r~ = inr r~
+```
+
+
+Where am I?
+-----------
+
+`Data P` is a type of tree-like data structures, where `P` gives the structure of
+each node. Imagine wandering about in such a tree. At any given point, we're visiting
+some subtree in the context of the rest of the tree.
+
+                  root
+                    ^
+                   / \
+                  /   \  <-- layers of context
+                 /hole \
+                /   ^   \
+               /   / \   \
+              /___/   \___\
+                    ^
+                    |
+                 subtree in focus
+
+Layers in a stack: backward lists.
+
+```agda
+data Bwd (X : Set) : Set where
+  []   : Bwd X
+  _-,_ : Bwd X -> X -> Bwd X
+```
+
+But what's each layer?
+
+```agda
+d/dX : Poly -> Poly
+d/dX `X       = `one
+d/dX `zero    = `zero
+d/dX `one     = `zero
+d/dX (P `+ Q) = d/dX P `+ d/dX Q
+d/dX (P `* Q) = (d/dX P `* Q) `+ (P `* d/dX Q)
+```
+
+If we have a context for an `X`, we can plug an `X` in the hole
+
+```agda
+plug : (P : Poly){X : Set} -> [[ d/dX P ]]0 X -> X -> [[ P ]]0 X
+plug `X       <>             x = x
+plug (P `+ Q) (inl wX)       x = inl (plug P wX x)
+plug (P `+ Q) (inr wX)       x = inr (plug Q wX x)
+plug (P `* Q) (inl (wX , q)) x = plug P wX x , q
+plug (P `* Q) (inr (p , wX)) x = p , plug Q wX x
+```
+
+Many layers...
+
+```agda
+Context : Poly -> Set
+Context P = Bwd ([[ d/dX P ]]0 (Data P))
+```
+
+Rebuild the whole tree from a context and a subtree.
+
+```agda
+plugData : (P : Poly) -> Context P -> Data P -> Data P
+plugData P []        t = t
+plugData P (lz -, l) t = plugData P lz (con (plug P l t))
+```
+
+Composition of Polynomials
+--------------------------
+
+Composition is exactly substitution!
+
+```agda
+_-P_ : Poly -> Poly -> Poly
+`X        -P Q = Q
+`zero     -P Q = `zero
+`one      -P Q = `one
+(P `+ P') -P Q = (P -P Q) `+ (P' -P Q)
+(P `* P') -P Q = (P -P Q) `* (P' -P Q)
+
+to-P : forall (P Q : Poly){X : Set} -> [[ P ]]0 ([[ Q ]]0 X) -> [[ P -P Q ]]0 X
+to-P `X        Q qx           = qx
+to-P `one      Q <>           = <>
+to-P (P `+ P') Q (inl pqx)    = inl (to-P P Q pqx)
+to-P (P `+ P') Q (inr p'qx)   = inr (to-P P' Q p'qx)
+to-P (P `* P') Q (pqx , p'qx) = to-P P Q pqx , to-P P' Q p'qx
+```
+
+Shapes and Position
+-------------------
+
+Remember this?
+
+```agda
+record Interaction : Set1 where
+  constructor _<?_
+  field
+    Question  : Set
+    Answer    : Question -> Set
+
+open Interaction public
+```
+
+```agda
+[[_]]I : Interaction -> Set -> Set
+[[ Q <? A ]]I X = Q >< \ q  -- first, choose a question
+               -> A q       -- wait for answer
+               -> X         -- return an X
+
+mapI : forall (QA : Interaction){X Y} ->
+       (X -> Y) -> [[ QA ]]I X -> [[ QA ]]I Y
+mapI QA f (q , k) = q , k - f
+```
+
+What if the Question is what shape is a node?
+What if the Answer is where is an element?
+
+For any polynomial P, can we construct Q and A so that
+`[[ P ]]0 X` is isomorphic to `[[ Q <? A ]]I X`?
+
+Of course!
+
+```agda
+polyInteraction : Poly -> Interaction
+Question (polyInteraction P) = [[ P ]]0 One
+Answer (polyInteraction `X)       p  = One
+Answer (polyInteraction `one)     <> = Zero
+Answer (polyInteraction (P `+ Q)) (inl p) = Answer (polyInteraction P) p
+Answer (polyInteraction (P `+ Q)) (inr q) = Answer (polyInteraction Q) q
+Answer (polyInteraction (P `* Q)) (p , q) = Answer (polyInteraction P) p
+                                          + Answer (polyInteraction Q) q
+```
+
+```agda
+toInteraction : (P : Poly){X : Set} -> [[ P ]]0 X -> [[ polyInteraction P ]]I X
+toInteraction `X x = <> , \ _ -> x
+toInteraction `one <> = <> , \ ()
+toInteraction (P `+ Q) (inl px) with toInteraction P px
+... | s , f = inl s , f
+toInteraction (P `+ Q) (inr qx) with toInteraction Q qx
+... | s , f = inr s , f
+toInteraction (P `* Q) (px , qx) with toInteraction P px | toInteraction Q qx
+... | sp , fp | sq , fq = (sp , sq) , (\ { (inl p) -> fp p ; (inr q) -> fq q })
 ```
