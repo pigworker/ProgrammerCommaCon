@@ -41,7 +41,7 @@ Often more useful than the Booleans are the Decisions.
 
 ```agda
 Dec : forall {l} -> Set l -> Set l
-Dec X = (X -> Zero) + X
+Dec {l} X = (X -> Zero {l}) + X
 ```
 
 Decisions tell us *what* is true or untrue, and *why*.

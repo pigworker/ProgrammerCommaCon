@@ -26,11 +26,11 @@ open Splatoid public
 The `Zero` and `One` types are both splatoids, but for different reasons.
 
 ```agda
-SplatZero : Splatoid
+SplatZero : forall {l} -> Splatoid {l}
 Splat SplatZero = Zero
 splat SplatZero () _
 
-SplatOne : Splatoid
+SplatOne : forall {l} -> Splatoid {l}
 Splat SplatOne = One
 splat SplatOne x y = r~
 ```

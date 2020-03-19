@@ -8,7 +8,7 @@ I like to name types after the number of values in them, starting with *none*
 *at* *all*.
 
 ```agda
-data Zero : Set where
+data Zero {l} : Set l where
 ```
 A `data` declaration is one way to introduce a new type, here `Zero`. It
 lives in `Set`, which is short for `Set 0` (see below), the built in type
@@ -24,7 +24,7 @@ happen in real life, but it can happen *hypothetically*. And when it does,
 you win, instantly!
 
 ```agda
-naughty : forall {l}{P : Set l} -> Zero -> P
+naughty : forall {k l}{P : Set l} -> Zero {k} -> P
 naughty ()
 ```
 
