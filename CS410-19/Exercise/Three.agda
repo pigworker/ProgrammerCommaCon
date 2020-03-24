@@ -4,6 +4,9 @@ open import Lib.Sigma
 
 open import CS410-19.Exercise.One
 
+-- Note... this is unfininshed. I've just pinched some exercises from the
+-- past.
+
 
 ------------------------------------------------------------------------------
 --  (I) Permutations
@@ -103,3 +106,5 @@ permute : {X : Set}{xs ys : List X} -> xs % ys ->
 permute p qs = {!!}
 
 --??--------------------------------------------------------------------------
+
+-- more to follow...

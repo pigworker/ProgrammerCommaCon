@@ -173,6 +173,18 @@ module _ {I : Set}{C : I >8 I} where
     fold-fusion t = {!!}
     allFold-fusion ts = {!!}
 
+-- Prove that fold is *extensional*, i.e., that two fold behave the same way
+-- if their base and step cases always behave the same way.
+
+  module _ {L V}
+    (f0 f1 : [ L -:> V ])         (fq : forall {i}(l : L i) -> f0 l ~ f1 l)
+    (g0 g1 : [ C -Frag V -:> V ]) (gq : forall {i}(vs : (C -Frag V) i) -> g0 vs ~ g1 vs)
+    where
+    fold-ext    : forall {i}(t : (C -Tree L) i) -> fold f0 g0 t ~ fold f1 g1 t
+    allFold-ext : forall {is}(ts : All (C -Tree L) is) -> allFold f0 g0 ts ~ allFold f1 g1 ts
+    fold-ext t = ?
+    allFold-ext ts = ?
+
 
 ------------------------------------------------------------------------------
 -- 2.3 Flattening Trees
@@ -190,6 +202,8 @@ data _-Vec_ (X : Set) : Nat -> Set where
 
 _+V_ : forall {X m n} -> X -Vec m -> X -Vec n -> X -Vec (m +N n)
 xs +V ys = {!!}
+
+infixr 10 _+V_
 
 -- We may define singletons of Xs (to put at the leaves of trees).
 
@@ -516,7 +530,7 @@ module _ where
 
 -- Now build the Kleisli category.
 
--- Hint: fold-rebuild and fold-fusion.
+-- Hint: fold-rebuild, fold-fusion and fold-ext.
 
   KLEISLI : forall {I}(C : I >8 I) ->
             Cat \ S T -> UpS (S =K C > T)
