@@ -14,6 +14,8 @@ data Bwd (X : Set) : Set where
 infixl 20 _-,_
 ```
 
+Environments are "All" for backward lists.
+
 ```agda
 module _ {X : Set} where
 
