@@ -80,7 +80,7 @@ NatDesc : One {lzero} -> Desc One
 NatDesc <> = Two `>< (`1 <2> `V <>)
 
 Nat' : Set
-Nat' = Data NatDesc <> where
+Nat' = Data NatDesc <>
 
 ze' : Nat'
 ze' = con (ff , <>)
@@ -95,8 +95,8 @@ module _ {I J : Set}(f : J -> I) where
   Inv : I -> Set
   Inv i = J >< \ j -> f j ~ i
 
-  data Orn : Desc I -> Set1 where  -- ornaments of `Desc`riptions of datatypes
-    `V     : {i : I}(j : Inv i) -> Orn (`V i)
+  data Orn : Desc I -> Set1 where  -- ornaments of `Desc`ription of datatypes
+    `V     : {i : I} -> Inv i -> Orn (`V i)
     `0     : Orn `0
     `1     : Orn `1
     _`*_   : {S T : Desc I} -> Orn S -> Orn T -> Orn (S `* T)
@@ -109,35 +109,46 @@ module _ {I J : Set}(f : J -> I) where
   orn `0 = `0
   orn `1 = `1
   orn (O `* P) = orn O `* orn P
-  orn (S `>< T) = S `>< \ s -> orn (T s)
-  orn (ins>< S T) = S `>< \ s -> orn (T s)
+  orn (S `>< O) = S `>< \ s -> orn (O s)
+  orn (ins>< S O) = S `>< \ s -> orn (O s)
   orn (del>< s O) = orn O
 
-  fog : {D : Desc I}(O : Orn D){X : I -> Set} ->
-        [[ orn O ]]0 (f - X) -> [[ D ]]0 X
+  fog : {D : Desc I}(O : Orn D){X : I -> Set} -> [[ orn O ]]0 (f - X) -> [[ D ]]0 X
   fog (`V (j , r~)) x = x
   fog `1 <> = <>
   fog (O `* P) (xo , xp) = fog O xo , fog P xp
-  fog (S `>< T) (s , xt) = s , fog (T s) xt
-  fog (ins>< S T) (s , xt) = fog (T s) xt
+  fog (S `>< O) (s , xo) = s , fog (O s) xo
+  fog (ins>< S O) (s , xo) = fog (O s) xo
   fog (del>< s O) xo = s , fog O xo
 ```
 
 ```agda
-OrnData : {I : Set} -> (I -> Desc I) -> (J : Set) -> (J -> I) -> Set1
-OrnData {I} F J f = (j : J) -> Orn f (F (f j))
+  module _ (F : I -> Desc I) where
 
-DataO : {I : Set}(F : I -> Desc I){J : Set}{f : J -> I}(O : OrnData F J f) ->
-  J -> Set
-DataO F {f = f} O = Data (\ j -> orn f (O j))
+    OrnData : Set1
+    OrnData = (j : J) -> Orn (F (f j))
 
-datFog : {I : Set}(F : I -> Desc I){J : Set}{f : J -> I}(O : OrnData F J f) ->
-  {j : J} -> DataO F O j -> Data F (f j)
-datFog F {f = f} O =
-  fold (\ j -> orn f (O j)) (\ {j} ts -> con (fog f (O j) ts))
+    DataO : OrnData -> J -> Set
+    DataO O j = Data (\ j -> orn (O j)) j
 
-Nat2List : Set -> OrnData NatDesc One _
+    dataFog : (O : OrnData){j : J} -> DataO O j -> Data F (f j)
+    dataFog O = fold (\ j -> orn (O j)) {X = \ j -> Data F (f j) }
+      (fog (O _) - con)  -- ornamental algebra
+```
+
+```agda
+Nat2List : Set -> OrnData {J = One} _ NatDesc
 Nat2List X <> = Two `>< \ { ff -> `1 ; tt -> ins>< X \ _ -> `V (<> , r~) }
 
+List' : Set -> Set
+List' X = DataO _ NatDesc (Nat2List X) <>
 
+nil' : forall {X} -> List' X
+nil' = con (ff , <>)
+
+cons' : forall {X} -> X -> List' X -> List' X
+cons' x xs = con (tt , x , xs)
+
+length : forall {X} -> List' X -> Nat'
+length = dataFog _ NatDesc (Nat2List _)
 ```
