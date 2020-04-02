@@ -374,14 +374,14 @@ module _ {X : Set} where
   data Splitting : {xs ys zs : List X}
                    (th : xs <: zs)(ph : ys <: zs) 
                 -> Set where
-    _-^,_ : forall w {xs ys zs}{th : xs <: zs}{ph : ys <: zs} ->
+    _^,-_ : forall w {xs ys zs}{th : xs <: zs}{ph : ys <: zs} ->
                Splitting th ph ->
                Splitting (w ^- th) (w ,- ph)
-    _-,^_ : forall w {xs ys zs}{th : xs <: zs}{ph : ys <: zs} ->
+    _,^-_ : forall w {xs ys zs}{th : xs <: zs}{ph : ys <: zs} ->
                Splitting th ph ->
                Splitting (w ,- th) (w ^- ph)
     [] : Splitting [] []
-  infixr 60 _-^,_ _-,^_
+  infixr 60 _^,-_ _,^-_
 
 -- Show that if we know how xs <: zs, we can find a splitting of zs by
 -- computing...
