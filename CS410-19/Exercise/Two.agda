@@ -1,3 +1,4 @@
+{-# OPTIONS --allow-unsolved-metas #-}
 module CS410-19.Exercise.Two where
 
 open import Agda.Primitive
@@ -440,7 +441,7 @@ module HUTTON where
 --            x : T
 
 --       -----------      -----------    (constants have types)
---         b : two          n : Nat
+--         b : two          n : nat
 
 --         e0 : nat     e1 : nat
 --       -------------------------  (adding takes numbers to a number)
