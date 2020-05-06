@@ -342,6 +342,12 @@ module RECUTTER {I}(C : I >8 I) where
              Cut (Sub (i , c')) >< \ d' ->
              pieces (Sub (i , c)) d % pieces (Sub (i , c')) d'
 
+--            01234567890123456789
+-- one cut    {-------------}{---}
+-- recut      {-----}{------}
+--                   {------}{---}
+-- another    {-----}{-----------}
+
 --??--3.12--------------------------------------------------------------------
 
 -- Construct the following:
@@ -360,4 +366,4 @@ module _ where
 
 
 
--- more to follow...
+-- more to follow...but no more holes
