@@ -169,6 +169,8 @@ _<*All*>_ : forall {X}{S T : X -> Set} ->
   [ All (S -:> T) -:> All S -:> All T ]
 fs <*All*> ss = {!!}
 
+infixl 4 _<*All*>_
+
 -- Use the above two gadgets to define map for All
 
 all : forall {X}{S T : X -> Set} ->
