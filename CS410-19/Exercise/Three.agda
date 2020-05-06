@@ -162,6 +162,7 @@ vecCut c f = {!!}
 -- We need help from some old friends, first.
 
 record Applicative (F : Set -> Set) : Set1 where
+  infixl 4 _<*>_
   field
     pure  : forall {X} -> X -> F X
     _<*>_ : forall {S T} -> F (S -> T) -> F S -> F T
