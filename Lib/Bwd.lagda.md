@@ -4,6 +4,7 @@
 module Lib.Bwd where
 
 open import Lib.Pi
+open import Lib.Equality
 ```
 
 ```agda
@@ -11,8 +12,30 @@ data Bwd (X : Set) : Set where
   []   : Bwd X
   _-,_ : Bwd X -> X -> Bwd X
 
-infixl 20 _-,_
+_-+_ : forall {X} -> Bwd X -> Bwd X -> Bwd X
+xz -+ [] = xz
+xz -+ (yz -, y) = xz -+ yz -, y
+
+infixl 20 _-,_ _-+_ _-%_
+
+assoc-+-+ : forall {X}(xz yz zz : Bwd X)
+  -> (xz -+ (yz -+ zz)) ~ (xz -+ yz -+ zz)
+assoc-+-+ xz yz [] = r~
+assoc-+-+ xz yz (zz -, z) = _-, z $~ assoc-+-+ xz yz zz
+
+_-%_ : forall {X} -> Bwd X -> Bwd X -> Bwd X
+xz -% [] = xz
+xz -% (yz -, y) = xz -, y -% yz
+
+bwdRev : forall {X} -> Bwd X -> Bwd X
+bwdRev xz = [] -% xz
+
+assoc-%-+ : forall {X}(xz zz yz : Bwd X)
+         -> (xz -% (zz -+ yz)) ~ (xz -% yz -% zz)
+assoc-%-+ xz yz [] = r~
+assoc-%-+ xz yz (zz -, x) = assoc-%-+ (xz -, x) yz zz
 ```
+
 
 Environments are "All" for backward lists.
 
