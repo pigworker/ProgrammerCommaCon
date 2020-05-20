@@ -15,7 +15,13 @@ module _ {X : Set}(R : X -> X -> Set) where
 ```
 
 ```agda
-  _<>*>_ : forall {x y z} -> Rats x y -> Star y z -> Star x z
+module _ {X : Set}{R : X -> X -> Set} where
+
+  _<>*>_ : forall {x y z} -> Rats R x y -> Star R y z -> Star R x z
   [] <>*> rs = rs
   (rz -, r) <>*> rs = rz <>*> (r ,- rs)
+
+  _>>*>_ : forall {x y z} -> Star R x y -> Star R y z -> Star R x z
+  [] >>*> ss = ss
+  (r ,- rs) >>*> ss = r ,- (rs >>*> ss)
 ```

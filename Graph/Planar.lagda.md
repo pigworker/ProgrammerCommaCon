@@ -193,20 +193,33 @@ root skyhook to any sector.
 ```agda
   record Rejig (R : Bwd E -> Bwd E -> Set) : Set where
     field
-      rejig : forall {dz ez}
-        -> R dz ez
-        -> forall oz iz
-        -> dz ~ (oz -+ iz)
-        -> forall uz
-        -> (  Bwd E >< \ nz -- noppers
-           -> Bwd E >< \ pz -- poppers
-           -> Bwd E >< \ jz -- jumpers
+      rejig : forall {dz ez} -> R dz ez
+        -> forall oz iz -> dz ~ (oz -+ iz)  -- outers (to turn) inners (not)
+        -> forall uz                        -- already turned new outers
+        -> -- if we popped far enough left, we'll have done some turning
+           (  Bwd E >< \ nz -- noppers are not being turned
+           -> Bwd E >< \ pz -- poppers are being turned
+           -> Bwd E >< \ jz -- jumpers (actually, they were pushed)
            -> oz ~ (nz -+ pz)
             * ez ~ (nz -+ jz)
             * R (uz -+ iz) (uz -% pz -+ jz))
-         + (  Bwd E >< \ kz -- keepers
+         + -- if we didn't get far enough left, not much changes
+           (  Bwd E >< \ kz -- keepers
            -> ez ~ (oz -+ kz)
             * R (uz -+ iz) (uz -+ kz))
+      gijer : forall {dz ez} -> R dz ez
+        -> forall oz iz -> ez ~ (oz -+ iz)
+        -> forall uz
+        -> (Bwd E >< \ nz
+           -> Bwd E >< \ pz
+           -> Bwd E >< \ jz
+           -> oz ~ (nz -+ pz)
+            * dz ~ (nz -+ jz)
+            * R (uz -% pz -+ jz) (uz -+ iz))
+         + 
+           (  Bwd E >< \ kz
+           -> dz ~ (oz -+ kz)
+            * R  (uz -+ kz) (uz -+ iz))
   open Rejig
 
   reEdge    : Rejig Edge
@@ -224,8 +237,23 @@ root skyhook to any sector.
     = inr (kz , q0 , span g')
   ... | inl (nz , pz , jz , q0 , q1 , g')
     = inl (nz , pz , jz , q0 , q1 , span g')
+  gijer reEdge (pop e)  oz iz q uz = inr (iz -, e , (_-, e $~ q) , pop e)
+  gijer reEdge (push e) oz (iz -, .e) r~ uz = inr (iz , r~ , push e)
+  gijer reEdge (push e) (oz -, e) [] r~ uz = inl (oz , [] -, e , [] , r~ , r~ , pop e)
+  gijer reEdge (span g) oz iz q uz
+    with gijer reSpanner g oz iz q uz
+  ... | inr (kz , q0 , g')
+    = inr (kz , q0 , span g')
+  ... | inl (nz , pz , jz , q0 , q1 , g')
+    = inl (nz , pz , jz , q0 , q1 , span g')
   rejig reSpanner (spanner e v x rxs) oz iz q uz
     with rejig reTurns rxs oz iz q uz
+  ... | inr (kz , q0 , rxs')
+    = inr (kz , q0 , spanner e v x rxs')
+  ... | inl (nz , pz , jz , q0 , q1 , rxs')
+    = inl (nz , pz , jz , q0 , q1 , spanner e v x rxs')
+  gijer reSpanner (spanner e v x rxs) oz iz q uz
+    with gijer reTurns rxs oz iz q uz
   ... | inr (kz , q0 , rxs')
     = inr (kz , q0 , spanner e v x rxs')
   ... | inl (nz , pz , jz , q0 , q1 , rxs')
@@ -251,4 +279,40 @@ root skyhook to any sector.
       , q0 -~- assoc-+-+ nz1 pz1 pz0 ~o
       , q3
       , (r' , x) ,- rxs')
+  gijer reTurns [] oz iz q uz = inr (iz , q , [])
+  gijer reTurns ((r , x) ,- rxs) oz iz q uz
+    with gijer reTurns rxs oz iz q uz
+  gijer reTurns ((r , x) ,- rxs) oz iz q uz
+    | inr (kz0 , q0 , rxs')
+    with gijer reEdge r oz kz0 q0 uz
+  ... | inr (kz1 , q1 , r') = inr (kz1 , q1 , (r' , x) ,- rxs')
+  ... | inl (nz1 , pz1 , jz1 , q2 , q3 , r')
+      = inl (nz1 , pz1 , jz1 , q2 , q3 , (r' , x) ,- rxs')
+  gijer reTurns ((r , x) ,- rxs) oz iz q uz
+    | inl (nz0 , pz0 , jz0 , q0 , q1 , rxs')
+    with gijer reEdge r nz0 jz0 q1 (uz -% pz0)
+  ... | inr (kz1 , q2 , r')
+      = inl (nz0 , pz0 , kz1 , q0 , q2 , (r' , x) ,- rxs')
+  ... | inl (nz1 , pz1 , jz1 , r~ , q3 , r')
+      rewrite assoc-%-+ uz pz1 pz0 ~o
+      = inl (nz1 , pz1 -+ pz0 , jz1
+      , q0 -~- assoc-+-+ nz1 pz1 pz0 ~o
+      , q3
+      , (r' , x) ,- rxs')
+
+  rotate : Planar -> Planar
+  rotate (spanner e v x0 ((r , x1) ,- rxs))
+    with rejig reTurns rxs _ [] r~ []
+  ... | inr ([] , r~ , rxs') = spanner e v x1 (rxs' >>*> ((r , x0) ,- []))
+  ... | inl (.[] , pz , [] , r~ , r~ , rxs')
+    with gijer reEdge r _ [] r~ []
+  ... | inl ([] , pz' , [] , q0 , r~ , r')
+    rewrite q0
+    = spanner e v x0 ((r , x1) ,- rxs)
+  rotate (spanner e v x0 ((r , x1) ,- rxs))
+    | inl (.[] , [] , [] , r~ , r~ , rxs') | inr ([] , r~ , r')
+    = spanner e v x1 (rxs' >>*> ((r , x0) ,- []))
+  rotate (spanner e v x0 ((r , x1) ,- rxs))
+    | inl (.[] , _ -, _ , [] , r~ , r~ , rxs') | inr ([] , () , r')
+  rotate (spanner e v x []) = spanner e v x []
 ```
